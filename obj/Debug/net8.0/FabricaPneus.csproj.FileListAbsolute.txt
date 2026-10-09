@@ -1,0 +1,195 @@
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\appsettings.json
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\FabricaPneus.staticwebassets.runtime.json
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\FabricaPneus.staticwebassets.endpoints.json
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\FabricaPneus.exe
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\FabricaPneus.deps.json
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\FabricaPneus.runtimeconfig.json
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\FabricaPneus.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\FabricaPneus.pdb
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\Azure.Core.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\Azure.Identity.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\Microsoft.Data.SqlClient.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\Microsoft.Identity.Client.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\Microsoft.Identity.Client.Extensions.Msal.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\Microsoft.SqlServer.Server.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\System.ClientModel.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\System.Configuration.ConfigurationManager.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\System.Memory.Data.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\System.Runtime.Caching.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\System.Security.Cryptography.ProtectedData.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\de\Microsoft.Data.SqlClient.resources.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\es\Microsoft.Data.SqlClient.resources.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\fr\Microsoft.Data.SqlClient.resources.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\it\Microsoft.Data.SqlClient.resources.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\ja\Microsoft.Data.SqlClient.resources.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\ko\Microsoft.Data.SqlClient.resources.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\pt-BR\Microsoft.Data.SqlClient.resources.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\ru\Microsoft.Data.SqlClient.resources.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\zh-Hans\Microsoft.Data.SqlClient.resources.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\zh-Hant\Microsoft.Data.SqlClient.resources.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\runtimes\unix\lib\net8.0\Microsoft.Data.SqlClient.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\runtimes\win\lib\net8.0\Microsoft.Data.SqlClient.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\runtimes\win-arm\native\Microsoft.Data.SqlClient.SNI.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\runtimes\win-arm64\native\Microsoft.Data.SqlClient.SNI.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Runtime.Caching.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\FabricaPneus.csproj.AssemblyReference.cache
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\FabricaPneus.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\FabricaPneus.AssemblyInfoInputs.cache
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\FabricaPneus.AssemblyInfo.cs
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\FabricaPneus.csproj.CoreCompileInputs.cache
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\FabricaPneus.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\rjimswa.dswa.cache.json
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\scopedcss\bundle\FabricaPneus.styles.css
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\staticwebassets.build.json
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\staticwebassets.build.json.cache
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\staticwebassets.development.json
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\swae.build.ex.cache
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\FabricaP.E3C43B3A.Up2Date
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\FabricaPneus.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\refint\FabricaPneus.dll
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\FabricaPneus.pdb
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\FabricaPneus.genruntimeconfig.cache
+C:\Users\supor\Downloads\teste_erp_banco_dados\teste_erp\obj\Debug\net8.0\ref\FabricaPneus.dll
+D:\teste_erp\bin\Debug\net8.0\appsettings.json
+D:\teste_erp\bin\Debug\net8.0\FabricaPneus.staticwebassets.endpoints.json
+D:\teste_erp\bin\Debug\net8.0\FabricaPneus.staticwebassets.runtime.json
+D:\teste_erp\bin\Debug\net8.0\FabricaPneus.exe
+D:\teste_erp\bin\Debug\net8.0\FabricaPneus.deps.json
+D:\teste_erp\bin\Debug\net8.0\FabricaPneus.runtimeconfig.json
+D:\teste_erp\bin\Debug\net8.0\FabricaPneus.dll
+D:\teste_erp\bin\Debug\net8.0\FabricaPneus.pdb
+D:\teste_erp\bin\Debug\net8.0\Azure.Core.dll
+D:\teste_erp\bin\Debug\net8.0\Azure.Identity.dll
+D:\teste_erp\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
+D:\teste_erp\bin\Debug\net8.0\Microsoft.Data.SqlClient.dll
+D:\teste_erp\bin\Debug\net8.0\Microsoft.Identity.Client.dll
+D:\teste_erp\bin\Debug\net8.0\Microsoft.Identity.Client.Extensions.Msal.dll
+D:\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll
+D:\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll
+D:\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll
+D:\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.dll
+D:\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+D:\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
+D:\teste_erp\bin\Debug\net8.0\Microsoft.SqlServer.Server.dll
+D:\teste_erp\bin\Debug\net8.0\System.ClientModel.dll
+D:\teste_erp\bin\Debug\net8.0\System.Configuration.ConfigurationManager.dll
+D:\teste_erp\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
+D:\teste_erp\bin\Debug\net8.0\System.Memory.Data.dll
+D:\teste_erp\bin\Debug\net8.0\System.Runtime.Caching.dll
+D:\teste_erp\bin\Debug\net8.0\System.Security.Cryptography.ProtectedData.dll
+D:\teste_erp\bin\Debug\net8.0\de\Microsoft.Data.SqlClient.resources.dll
+D:\teste_erp\bin\Debug\net8.0\es\Microsoft.Data.SqlClient.resources.dll
+D:\teste_erp\bin\Debug\net8.0\fr\Microsoft.Data.SqlClient.resources.dll
+D:\teste_erp\bin\Debug\net8.0\it\Microsoft.Data.SqlClient.resources.dll
+D:\teste_erp\bin\Debug\net8.0\ja\Microsoft.Data.SqlClient.resources.dll
+D:\teste_erp\bin\Debug\net8.0\ko\Microsoft.Data.SqlClient.resources.dll
+D:\teste_erp\bin\Debug\net8.0\pt-BR\Microsoft.Data.SqlClient.resources.dll
+D:\teste_erp\bin\Debug\net8.0\ru\Microsoft.Data.SqlClient.resources.dll
+D:\teste_erp\bin\Debug\net8.0\zh-Hans\Microsoft.Data.SqlClient.resources.dll
+D:\teste_erp\bin\Debug\net8.0\zh-Hant\Microsoft.Data.SqlClient.resources.dll
+D:\teste_erp\bin\Debug\net8.0\runtimes\unix\lib\net8.0\Microsoft.Data.SqlClient.dll
+D:\teste_erp\bin\Debug\net8.0\runtimes\win\lib\net8.0\Microsoft.Data.SqlClient.dll
+D:\teste_erp\bin\Debug\net8.0\runtimes\win-arm\native\Microsoft.Data.SqlClient.SNI.dll
+D:\teste_erp\bin\Debug\net8.0\runtimes\win-arm64\native\Microsoft.Data.SqlClient.SNI.dll
+D:\teste_erp\bin\Debug\net8.0\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll
+D:\teste_erp\bin\Debug\net8.0\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
+D:\teste_erp\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Runtime.Caching.dll
+D:\teste_erp\obj\Debug\net8.0\FabricaPneus.csproj.AssemblyReference.cache
+D:\teste_erp\obj\Debug\net8.0\rpswa.dswa.cache.json
+D:\teste_erp\obj\Debug\net8.0\FabricaPneus.GeneratedMSBuildEditorConfig.editorconfig
+D:\teste_erp\obj\Debug\net8.0\FabricaPneus.AssemblyInfoInputs.cache
+D:\teste_erp\obj\Debug\net8.0\FabricaPneus.AssemblyInfo.cs
+D:\teste_erp\obj\Debug\net8.0\FabricaPneus.csproj.CoreCompileInputs.cache
+D:\teste_erp\obj\Debug\net8.0\FabricaPneus.MvcApplicationPartsAssemblyInfo.cache
+D:\teste_erp\obj\Debug\net8.0\rjimswa.dswa.cache.json
+D:\teste_erp\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
+D:\teste_erp\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
+D:\teste_erp\obj\Debug\net8.0\scopedcss\bundle\FabricaPneus.styles.css
+D:\teste_erp\obj\Debug\net8.0\staticwebassets.build.json
+D:\teste_erp\obj\Debug\net8.0\staticwebassets.build.json.cache
+D:\teste_erp\obj\Debug\net8.0\staticwebassets.development.json
+D:\teste_erp\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+D:\teste_erp\obj\Debug\net8.0\swae.build.ex.cache
+D:\teste_erp\obj\Debug\net8.0\FabricaP.E3C43B3A.Up2Date
+D:\teste_erp\obj\Debug\net8.0\FabricaPneus.dll
+D:\teste_erp\obj\Debug\net8.0\refint\FabricaPneus.dll
+D:\teste_erp\obj\Debug\net8.0\FabricaPneus.pdb
+D:\teste_erp\obj\Debug\net8.0\FabricaPneus.genruntimeconfig.cache
+D:\teste_erp\obj\Debug\net8.0\ref\FabricaPneus.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\appsettings.json
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\FabricaPneus.staticwebassets.runtime.json
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\FabricaPneus.exe
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\FabricaPneus.deps.json
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\FabricaPneus.runtimeconfig.json
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\FabricaPneus.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\FabricaPneus.pdb
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\Azure.Core.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\Azure.Identity.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\Microsoft.Data.SqlClient.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\Microsoft.Identity.Client.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\Microsoft.Identity.Client.Extensions.Msal.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\Microsoft.SqlServer.Server.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\System.ClientModel.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\System.Configuration.ConfigurationManager.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\System.Memory.Data.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\System.Runtime.Caching.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\System.Security.Cryptography.ProtectedData.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\de\Microsoft.Data.SqlClient.resources.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\es\Microsoft.Data.SqlClient.resources.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\fr\Microsoft.Data.SqlClient.resources.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\it\Microsoft.Data.SqlClient.resources.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\ja\Microsoft.Data.SqlClient.resources.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\ko\Microsoft.Data.SqlClient.resources.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\pt-BR\Microsoft.Data.SqlClient.resources.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\ru\Microsoft.Data.SqlClient.resources.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\zh-Hans\Microsoft.Data.SqlClient.resources.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\zh-Hant\Microsoft.Data.SqlClient.resources.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\runtimes\unix\lib\net8.0\Microsoft.Data.SqlClient.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\runtimes\win\lib\net8.0\Microsoft.Data.SqlClient.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\runtimes\win-arm\native\Microsoft.Data.SqlClient.SNI.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\runtimes\win-arm64\native\Microsoft.Data.SqlClient.SNI.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
+E:\teste_erp (2)\teste_erp\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Runtime.Caching.dll
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\FabricaPneus.csproj.AssemblyReference.cache
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\FabricaPneus.GeneratedMSBuildEditorConfig.editorconfig
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\FabricaPneus.AssemblyInfoInputs.cache
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\FabricaPneus.AssemblyInfo.cs
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\FabricaPneus.csproj.CoreCompileInputs.cache
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\FabricaPneus.MvcApplicationPartsAssemblyInfo.cache
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\staticwebassets.build.json
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\staticwebassets.development.json
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\staticwebassets\msbuild.FabricaPneus.Microsoft.AspNetCore.StaticWebAssets.props
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\staticwebassets\msbuild.build.FabricaPneus.props
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.FabricaPneus.props
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.FabricaPneus.props
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\staticwebassets.pack.json
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\scopedcss\bundle\FabricaPneus.styles.css
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\FabricaP.E3C43B3A.Up2Date
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\FabricaPneus.dll
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\refint\FabricaPneus.dll
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\FabricaPneus.pdb
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\FabricaPneus.genruntimeconfig.cache
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\ref\FabricaPneus.dll

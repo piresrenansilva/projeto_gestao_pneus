@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fábrica de Pneus</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">
+      <div class="brand-logo"><img src="/fotos/logo/logo.png" alt="Logo da empresa" onerror="this.style.display='none'; this.parentElement.classList.add('no-logo')"><span>LOGO</span></div>
+      <strong>Fábrica de Pneus</strong>
+    </div>
+    <nav id="nav"></nav>
+  </aside>
+  <main>
+    <header class="top">
+      <div>
+        <h1 id="title">Painel</h1>
+        <p class="lede" id="lede"></p>
+      </div>
+      <div class="row" id="actions"></div>
+    </header>
+    <div id="view"></div>
+  </main>
+</div>
+<div class="modal-back" id="modal">
+  <form class="modal" id="form">
+    <h2 id="modalTitle">Registro</h2>
+    <div class="grid" id="formFields" style="margin-top:12px"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button type="button" class="btn ghost" id="cancelBtn">Cancelar</button>
+      <button class="btn" type="submit">Salvar</button>
+    </div>
+  </form>
+</div>
+<script src="app.js" defer></script>
+</body>
+</html>

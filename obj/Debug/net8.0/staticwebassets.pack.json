@@ -1,0 +1,41 @@
+{
+  "Files": [
+    {
+      "Id": "E:\\teste_erp (2)\\teste_erp\\wwwroot\\app.js",
+      "PackagePath": "staticwebassets\\app.js"
+    },
+    {
+      "Id": "E:\\teste_erp (2)\\teste_erp\\wwwroot\\fotos\\logo\\.gitkeep",
+      "PackagePath": "staticwebassets\\fotos\\logo\\.gitkeep"
+    },
+    {
+      "Id": "E:\\teste_erp (2)\\teste_erp\\wwwroot\\fotos\\logo\\logo.PNG",
+      "PackagePath": "staticwebassets\\fotos\\logo\\logo.PNG"
+    },
+    {
+      "Id": "E:\\teste_erp (2)\\teste_erp\\wwwroot\\index.html",
+      "PackagePath": "staticwebassets\\index.html"
+    },
+    {
+      "Id": "E:\\teste_erp (2)\\teste_erp\\wwwroot\\styles.css",
+      "PackagePath": "staticwebassets\\styles.css"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.FabricaPneus.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.FabricaPneus.props",
+      "PackagePath": "build\\FabricaPneus.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.FabricaPneus.props",
+      "PackagePath": "buildMultiTargeting\\FabricaPneus.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.FabricaPneus.props",
+      "PackagePath": "buildTransitive\\FabricaPneus.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
