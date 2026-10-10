@@ -707,7 +707,10 @@ function servicosEtapaMarkup() {
 function pagamentoEtapaMarkup() {
   const subtotal = total(vendaRascunho.itens);
   const percentual = Number(vendaRascunho.descontoPercentual) || 0;
-  const desconto = Math.round(subtotal * percentual) / 100;
+  const descontoCalculado = Math.round(subtotal * percentual) / 100;
+  const desconto = editingPedidoId
+    ? Math.min(subtotal, Math.max(0, Number(vendaRascunho.descontoValor) || 0))
+    : descontoCalculado;
   vendaRascunho.descontoValor = desconto;
   return `<section class="card venda-etapa-conteudo">
     <span class="meta">Etapa 4 de 4</span><h2>Pagamento e conclusão</h2>
@@ -730,7 +733,13 @@ function pagamentoEtapaMarkup() {
       <label>Data<input id="dataAgendaVenda" type="date" value="${escapeHtml(vendaRascunho.agendamento)}"></label>
       <label>Horário<input id="horarioVenda" type="time" value="${escapeHtml(vendaRascunho.horario)}"></label>
     </div>
-    <div class="venda-navegacao"><button class="btn ghost" type="button" data-anterior>← Anterior</button><button class="btn" type="button" id="concluirVenda" ${vendaRascunho.itens.length ? "" : "disabled"}>${editingPedidoId ? "Salvar alterações do orçamento e gerar PDF" : "Concluir venda e baixar pedido em PDF"}</button></div>
+    <div class="venda-navegacao">
+      <button class="btn ghost" type="button" data-anterior>← Anterior</button>
+      <div class="venda-acoes-salvar">
+        <button class="btn ghost" type="button" id="salvarVenda" ${vendaRascunho.itens.length ? "" : "disabled"}>${editingPedidoId ? "Salvar alterações" : "Salvar pedido"}</button>
+        <button class="btn" type="button" id="salvarVendaPdf" ${vendaRascunho.itens.length ? "" : "disabled"}>${editingPedidoId ? "Salvar alterações e gerar PDF" : "Salvar e gerar PDF"}</button>
+      </div>
+    </div>
   </section>`;
 }
 
@@ -840,11 +849,13 @@ function renderVenda() {
   if (dataAgenda) dataAgenda.onchange = () => { vendaRascunho.agendamento = dataAgenda.value; };
   const horario = document.getElementById("horarioVenda");
   if (horario) horario.onchange = () => { vendaRascunho.horario = horario.value; };
-  const concluir = document.getElementById("concluirVenda");
-  if (concluir) concluir.onclick = concluirVenda;
+  const salvar = document.getElementById("salvarVenda");
+  if (salvar) salvar.onclick = () => concluirVenda(false);
+  const salvarPdf = document.getElementById("salvarVendaPdf");
+  if (salvarPdf) salvarPdf.onclick = () => concluirVenda(true);
 }
 
-async function concluirVenda() {
+async function concluirVenda(gerarPdf) {
   if (!vendaRascunho?.clienteId || !vendaRascunho.itens.length) {
     alert("Selecione o cliente e adicione ao menos um item antes de concluir.");
     return;
@@ -878,6 +889,7 @@ async function concluirVenda() {
     alert(`O pedido ${pedido.numero} foi salvo, mas não foi possível atualizar a tela: ${error.message}`);
   }
   render();
+  if (!gerarPdf) return;
   try { await baixarPdf(pedido.id); }
   catch (error) { alert(`O pedido ${pedido.numero} foi salvo, mas não foi possível baixar o PDF: ${error.message}`); }
 }

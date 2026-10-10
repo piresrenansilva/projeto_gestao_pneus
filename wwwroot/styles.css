@@ -169,6 +169,7 @@ th { color: var(--faint); font-size: 12px; text-transform: uppercase; letter-spa
 .venda-subtotal { display: flex; justify-content: space-between; gap: 12px; margin-top: 16px; color: var(--muted); }
 .venda-subtotal strong { color: var(--text); }
 .venda-navegacao { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
+.venda-acoes-salvar { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
 .venda-resumo { margin: 16px 0; padding: 14px; background: var(--subtle); border-radius: 12px; }
 .venda-resumo > div, .venda-total { display: flex; justify-content: space-between; gap: 14px; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .venda-resumo > div span { min-width: 0; }
@@ -222,5 +223,7 @@ label.full { grid-column: 1 / -1; }
   .produto-contagem { padding-bottom: 0; }
   .cliente-sugestao-contato { text-align: left; }
   .venda-navegacao { flex-wrap: wrap; }
+  .venda-acoes-salvar { width: 100%; }
+  .venda-acoes-salvar .btn { flex: 1; }
   main { padding: 16px; }
 }
