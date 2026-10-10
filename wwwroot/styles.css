@@ -101,6 +101,59 @@ th { color: var(--faint); font-size: 12px; text-transform: uppercase; letter-spa
 .cliente-resumo > div { display: flex; flex-direction: column; gap: 4px; }
 .cliente-resumo strong { font-size: 18px; font-weight: 500; }
 .cliente-resumo > div > span:last-child { color: var(--muted); font-size: 14px; }
+.venda-busca { position: relative; }
+.cliente-sugestoes { margin-top: -12px; margin-bottom: 16px; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--subtle); }
+.cliente-sugestoes:empty { display: none; }
+.cliente-sugestao { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 14px; color: var(--text); text-align: left; background: transparent; border: 0; border-bottom: 1px solid var(--line); }
+.cliente-sugestao:last-child { border-bottom: 0; }
+.cliente-sugestao:hover, .cliente-sugestao:focus-visible { background: rgba(215, 221, 230, .08); outline: none; }
+.cliente-sugestao > span:first-child { display: grid; gap: 2px; min-width: 0; }
+.cliente-sugestao strong { overflow: hidden; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.cliente-sugestao small, .cliente-sugestao-contato, .cliente-sugestoes-vazio { color: var(--muted); font-size: 13px; }
+.cliente-sugestao-contato { text-align: right; }
+.cliente-sugestoes-vazio { margin: 0; padding: 12px 14px; }
+.produto-venda-toolbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin: 18px 0 14px; }
+.produto-venda-toolbar label { flex: 1; max-width: 620px; }
+.produto-contagem { padding-bottom: 10px; color: var(--muted); font-size: 13px; white-space: nowrap; }
+.produto-venda-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.produto-venda-card { display: flex; min-width: 0; flex-direction: column; gap: 18px; padding: 16px; background: var(--subtle); border: 1px solid var(--line); border-radius: 14px; transition: border-color .15s, background .15s; }
+.produto-venda-card.selecionado { background: rgba(143, 191, 154, .06); border-color: var(--ok); }
+.produto-venda-cabecalho, .produto-venda-rodape { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.produto-codigo { color: var(--faint); font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+.produto-estoque { padding: 4px 8px; border-radius: 999px; font-size: 12px; white-space: nowrap; }
+.produto-estoque.disponivel { color: var(--ok); background: rgba(143, 191, 154, .1); }
+.produto-estoque.indisponivel { color: var(--warn); background: rgba(212, 180, 131, .1); }
+.produto-venda-info { min-height: 70px; }
+.produto-venda-info h3 { margin: 0 0 5px; font-size: 17px; font-weight: 500; line-height: 1.35; }
+.produto-venda-info p { margin: 0; color: var(--muted); font-size: 13px; }
+.produto-venda-preco { display: grid; gap: 2px; }
+.produto-venda-preco span { color: var(--faint); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+.produto-venda-preco strong { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.produto-venda-quantidade { gap: 5px; }
+.produto-venda-quantidade button { width: 34px; height: 34px; }
+.produto-venda-quantidade input { width: 54px; height: 34px; }
+.produto-resumo-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+.produto-resumo-kpi { display: flex; min-width: 0; flex-direction: column; gap: 5px; padding: 14px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+.produto-resumo-kpi span, .produto-admin-preco > span, .produto-admin-estoque span { color: var(--faint); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+.produto-resumo-kpi strong { font-size: 21px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.produto-resumo-kpi small, .produto-admin-estoque small { color: var(--muted); font-size: 12px; font-weight: 400; }
+.produto-admin { padding: 18px; }
+.produto-admin-toolbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 16px; }
+.produto-admin-toolbar label { flex: 1; max-width: 640px; }
+.produto-admin-toolbar > span { padding-bottom: 10px; color: var(--muted); font-size: 13px; white-space: nowrap; }
+.produto-admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.produto-admin-card { display: flex; min-width: 0; flex-direction: column; gap: 15px; padding: 16px; background: var(--subtle); border: 1px solid var(--line); border-radius: 14px; }
+.produto-admin-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.produto-admin-info { min-height: 65px; }
+.produto-admin-info h2 { margin: 0 0 5px; font-size: 17px; font-weight: 500; line-height: 1.35; }
+.produto-admin-info p { margin: 0; color: var(--muted); font-size: 13px; }
+.produto-admin-preco { display: grid; gap: 2px; }
+.produto-admin-preco strong { font-size: 21px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.produto-admin-estoque { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+.produto-admin-estoque > div { display: grid; gap: 4px; }
+.produto-admin-estoque strong { font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.produto-admin-acoes { display: flex; gap: 8px; margin-top: auto; }
+.produto-admin-acoes .btn { flex: 1; }
 .venda-lista { margin-top: 14px; border-top: 1px solid var(--line); }
 .venda-item { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto 150px; align-items: center; gap: 16px; padding: 14px 8px; border-bottom: 1px solid var(--line); }
 .venda-item.selecionado { background: rgba(143, 191, 154, .06); }
@@ -158,6 +211,14 @@ label.full { grid-column: 1 / -1; }
   .venda-item-preco { grid-column: 2; grid-row: 2; }
   .quantidade { grid-column: 3; grid-row: 2; }
   .cliente-resumo, .desconto-linha, .venda-detalhe { grid-template-columns: 1fr; }
+  .produto-resumo-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .produto-admin-toolbar { align-items: stretch; flex-direction: column; }
+  .produto-admin-toolbar label { max-width: none; }
+  .produto-admin-toolbar > span { padding-bottom: 0; }
+  .produto-venda-toolbar, .cliente-sugestao { align-items: stretch; flex-direction: column; }
+  .produto-venda-toolbar label { max-width: none; }
+  .produto-contagem { padding-bottom: 0; }
+  .cliente-sugestao-contato { text-align: left; }
   .venda-navegacao { flex-wrap: wrap; }
   main { padding: 16px; }
 }

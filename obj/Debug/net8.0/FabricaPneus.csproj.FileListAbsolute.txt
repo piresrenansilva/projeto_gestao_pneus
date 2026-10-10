@@ -193,3 +193,22 @@ E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\refint\FabricaPneus.dll
 E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\FabricaPneus.pdb
 E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\FabricaPneus.genruntimeconfig.cache
 E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\ref\FabricaPneus.dll
+E:\teste_erp (2)\teste_erp\obj\Debug\net8.0\FabricaPneus.sourcelink.json
+C:\Users\renan\AppData\Local\Temp\FabricaPneus-build\appsettings.json
+C:\Users\renan\AppData\Local\Temp\FabricaPneus-build\FabricaPneus.staticwebassets.runtime.json
+C:\Users\renan\AppData\Local\Temp\FabricaPneus-build\FabricaPneus.deps.json
+C:\Users\renan\AppData\Local\Temp\FabricaPneus-build\FabricaPneus.runtimeconfig.json
+C:\Users\renan\AppData\Local\Temp\FabricaPneus-build\FabricaPneus.dll
+C:\Users\renan\AppData\Local\Temp\FabricaPneus-build\FabricaPneus.pdb
+C:\Users\renan\AppData\Local\Temp\gestao-pneus-build\appsettings.json
+C:\Users\renan\AppData\Local\Temp\gestao-pneus-build\FabricaPneus.staticwebassets.runtime.json
+C:\Users\renan\AppData\Local\Temp\gestao-pneus-build\FabricaPneus.deps.json
+C:\Users\renan\AppData\Local\Temp\gestao-pneus-build\FabricaPneus.runtimeconfig.json
+C:\Users\renan\AppData\Local\Temp\gestao-pneus-build\FabricaPneus.dll
+C:\Users\renan\AppData\Local\Temp\gestao-pneus-build\FabricaPneus.pdb
+C:\Users\renan\AppData\Local\Temp\gestao-pneus-build-v2\appsettings.json
+C:\Users\renan\AppData\Local\Temp\gestao-pneus-build-v2\FabricaPneus.staticwebassets.runtime.json
+C:\Users\renan\AppData\Local\Temp\gestao-pneus-build-v2\FabricaPneus.deps.json
+C:\Users\renan\AppData\Local\Temp\gestao-pneus-build-v2\FabricaPneus.runtimeconfig.json
+C:\Users\renan\AppData\Local\Temp\gestao-pneus-build-v2\FabricaPneus.dll
+C:\Users\renan\AppData\Local\Temp\gestao-pneus-build-v2\FabricaPneus.pdb

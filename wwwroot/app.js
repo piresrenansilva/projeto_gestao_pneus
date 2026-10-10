@@ -25,8 +25,14 @@ async function api(url, options = {}) {
     headers: { "Content-Type": "application/json", ...(options.headers || {}) }
   });
   if (!response.ok) {
-    let message = `Erro HTTP ${response.status}`;
-    try { const body = await response.json(); message = body.detail || body.title || message; } catch {}
+    const rota = `${options.method || "GET"} ${new URL(url, window.location.href).pathname}`;
+    let message = response.status === 404
+      ? `Erro HTTP 404 em ${rota}; a rota não está disponível nesta instância do servidor.`
+      : `Erro HTTP ${response.status} em ${rota}`;
+    try {
+      const body = await response.json();
+      message = body.detail || (response.status === 404 ? message : body.title || message);
+    } catch {}
     throw new Error(message);
   }
   if (response.status === 204) return null;
@@ -361,7 +367,40 @@ const views = {
       <section class="card"><h2>Alertas</h2>${alertas.length ? `<ul class="list">${alertas.map((a) => `<li>${a}</li>`).join("")}</ul>` : `<p class="hint">Nenhum alerta.</p>`}</section>
     </div>`;
   },
-  produtos() { return table("produtos", ["Código", "Nome", "Categoria", "Medida", "Preço", "Depósito central", "Status"], (r) => [escapeHtml(r.produtoId), escapeHtml(r.nome), escapeHtml(r.categoria), escapeHtml(r.medida), money(r.preco), Number(r.estoqueCentral || 0), badge(r.status)]); },
+  produtos() {
+    const busca = normalizarBuscaCliente(query);
+    const produtos = db.produtos.filter((produto) => !busca || normalizarBuscaCliente([
+      produto.produtoId, produto.nome, produto.categoria, produto.medida, produto.status
+    ].join(" ")).includes(busca));
+    const ativos = db.produtos.filter((produto) => String(produto.status || "").toLowerCase() !== "inativo").length;
+    const estoqueLocalTotal = db.produtos.reduce((soma, produto) => soma + estoqueLocal(produto), 0);
+    const estoqueCentralTotal = db.produtos.reduce((soma, produto) => soma + Number(produto.estoqueCentral || 0), 0);
+    return `<div class="produto-resumo-kpis">
+      <div class="produto-resumo-kpi"><span>Produtos cadastrados</span><strong>${db.produtos.length}</strong></div>
+      <div class="produto-resumo-kpi"><span>Produtos ativos</span><strong>${ativos}</strong></div>
+      <div class="produto-resumo-kpi"><span>Estoque local</span><strong>${estoqueLocalTotal} <small>un.</small></strong></div>
+      <div class="produto-resumo-kpi"><span>Depósito central</span><strong>${estoqueCentralTotal} <small>un.</small></strong></div>
+    </div>
+    <section class="card produto-admin">
+      <div class="produto-admin-toolbar">
+        <label>Pesquisar produto<input id="q" type="search" placeholder="Nome, código, categoria ou medida" value="${escapeAttr(query)}"></label>
+        <span>${produtos.length} de ${db.produtos.length} produtos</span>
+      </div>
+      <div class="produto-admin-grid">${produtos.length ? produtos.map((produto) => {
+        const estoque = estoqueLocal(produto);
+        return `<article class="produto-admin-card">
+          <div class="produto-admin-topo"><span class="produto-codigo">${escapeHtml(produto.produtoId || "Sem código")}</span>${badge(produto.status)}</div>
+          <div class="produto-admin-info"><h2>${escapeHtml(produto.nome)}</h2><p>${escapeHtml([produto.categoria, produto.medida].filter(Boolean).join(" · ") || "Produto sem categoria ou medida")}</p></div>
+          <div class="produto-admin-preco"><span>Preço de venda</span><strong>${money(produto.preco)}</strong></div>
+          <div class="produto-admin-estoque">
+            <div><span>Estoque local</span><strong class="${estoque > 0 ? "ok" : "warn"}">${estoque} <small>un.</small></strong></div>
+            <div><span>Depósito central</span><strong>${Number(produto.estoqueCentral || 0)} <small>un.</small></strong></div>
+          </div>
+          <div class="produto-admin-acoes"><button class="btn ghost small" type="button" data-edit="produtos:${escapeHtml(produto.id)}">Editar produto</button><button class="btn danger small" type="button" data-del="produtos:${escapeHtml(produto.id)}">Excluir</button></div>
+        </article>`;
+      }).join("") : `<p class="hint">${db.produtos.length ? "Nenhum produto corresponde à pesquisa." : "Nenhum produto cadastrado. Use “Cadastrar produto” para criar o primeiro item do catálogo."}</p>`}</div>
+    </section>`;
+  },
   veiculos() { return table("veiculos", ["Cliente", "Marca", "Modelo", "Ano", "Placa", "Medida do pneu", "Status"], (r) => [
     escapeHtml(db.clientes.find((cliente) => cliente.id === r.clienteId)?.nome || "Cliente não encontrado"),
     escapeHtml(r.marca), escapeHtml(r.modelo), escapeHtml(r.ano), escapeHtml(r.placa), escapeHtml(r.medidaPneu), badge(r.status)
@@ -503,19 +542,28 @@ function etapasMarkup() {
 
 function clienteEtapaMarkup() {
   const selecionado = clienteSelecionado();
+  const termoBusca = String(vendaRascunho.clienteBusca || "").trim();
+  const sugestoes = !selecionado && termoBusca.length >= 3
+    ? clientesCorrespondentes(termoBusca).slice(0, 8)
+    : [];
   const veiculos = selecionado
     ? db.veiculos.filter((veiculo) => veiculo.clienteId === selecionado.id && String(veiculo.status || "").toLowerCase() !== "inativo")
     : [];
   return `<section class="card venda-etapa-conteudo">
     <span class="meta">Etapa 1 de 4</span><h2>Dados do cliente e veículo</h2>
     <label class="venda-busca">Buscar cliente por nome ou CPF / CNPJ
-      <input id="buscaClienteVenda" type="search" list="clientesVenda" placeholder="Digite o nome, CPF ou CNPJ" autocomplete="off" value="${escapeHtml(vendaRascunho.clienteBusca || "")}">
-      <datalist id="clientesVenda">${db.clientes.filter((c) => String(c.status || "").toLowerCase() !== "inativo").map((c) => {
-        const value = c.documento ? `${c.nome} — ${c.documento}` : c.nome;
-        return `<option value="${escapeHtml(value)}" label="${escapeHtml([c.telefone, c.email].filter(Boolean).join(" · "))}"></option>
-          ${c.documento ? `<option value="${escapeHtml(c.documento)}" label="${escapeHtml(c.nome)}"></option>` : ""}`;
-      }).join("")}</datalist>
+      <input id="buscaClienteVenda" type="search" placeholder="Digite ao menos 3 letras ou números" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="sugestoesClienteVenda" aria-expanded="${sugestoes.length ? "true" : "false"}" value="${escapeHtml(vendaRascunho.clienteBusca || "")}">
     </label>
+    <div id="sugestoesClienteVenda" class="cliente-sugestoes" role="listbox">
+      ${termoBusca.length >= 3 && !selecionado
+        ? sugestoes.length
+          ? sugestoes.map((cliente) => `<button type="button" class="cliente-sugestao" role="option" aria-selected="false" data-cliente-venda="${escapeHtml(cliente.id)}">
+              <span><strong>${escapeHtml(cliente.nome)}</strong><small>${escapeHtml(cliente.documento || "Documento não cadastrado")}</small></span>
+              <span class="cliente-sugestao-contato">${escapeHtml(cliente.telefone || cliente.email || "")}</span>
+            </button>`).join("")
+          : `<p class="cliente-sugestoes-vazio">Nenhum cliente correspondente.</p>`
+        : ""}
+    </div>
     ${selecionado ? `<div class="cliente-resumo">
       <div><span class="meta">Cliente</span><strong>${escapeHtml(selecionado.nome)}</strong><span>${escapeHtml(selecionado.documento || "Documento não cadastrado")}</span></div>
       <div><span class="meta">Limite de crédito</span><strong>${money(selecionado.limiteCredito)}</strong><span>Disponível: ${money(limiteDisponivel(selecionado))}</span></div>
@@ -528,11 +576,62 @@ function clienteEtapaMarkup() {
   </section>`;
 }
 
+function normalizarBuscaCliente(valor) {
+  return String(valor || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
+}
+
+function clientesCorrespondentes(termo) {
+  const buscaTexto = normalizarBuscaCliente(termo);
+  const buscaDocumento = buscaTexto.replace(/\D/g, "");
+  return db.clientes.filter((cliente) => {
+    if (String(cliente.status || "").toLowerCase() === "inativo") return false;
+    const nome = normalizarBuscaCliente(cliente.nome);
+    const documento = normalizarBuscaCliente(cliente.documento);
+    return nome.includes(buscaTexto) || (buscaDocumento.length >= 3 && documento.replace(/\D/g, "").includes(buscaDocumento));
+  });
+}
+
+function produtoVendaCardMarkup(produto) {
+  const selecionado = vendaRascunho.itens.find((item) => item.tipo === "pneu" && item.referencia === produto.id);
+  const quantidade = selecionado?.qtd || 0;
+  const estoque = estoqueLocal(produto);
+  const detalhe = [produto.categoria, produto.medida].filter(Boolean).join(" · ");
+  return `<article class="produto-venda-card ${quantidade ? "selecionado" : ""}">
+    <div class="produto-venda-cabecalho">
+      <span class="produto-codigo">${escapeHtml(produto.produtoId || "Sem código")}</span>
+      <span class="produto-estoque ${estoque > 0 ? "disponivel" : "indisponivel"}">${estoque > 0 ? `${estoque} em estoque` : "Sem estoque local"}</span>
+    </div>
+    <div class="produto-venda-info">
+      <h3>${escapeHtml(produto.nome)}</h3>
+      <p>${escapeHtml(detalhe || "Pneu")}</p>
+    </div>
+    <div class="produto-venda-rodape">
+      <div class="produto-venda-preco"><span>Preço unitário</span><strong>${money(produto.preco)}</strong></div>
+      <div class="quantidade produto-venda-quantidade">
+        <button type="button" aria-label="Diminuir quantidade de ${escapeHtml(produto.nome)}" data-qty-change="pneu:${escapeHtml(produto.id)}:-1">−</button>
+        <input type="number" min="0" step="1" value="${quantidade}" aria-label="Quantidade de ${escapeHtml(produto.nome)}" data-qty-value="pneu:${escapeHtml(produto.id)}">
+        <button type="button" aria-label="Aumentar quantidade de ${escapeHtml(produto.nome)}" data-qty-change="pneu:${escapeHtml(produto.id)}:1">+</button>
+      </div>
+    </div>
+  </article>`;
+}
+
 function produtosEtapaMarkup() {
+  const catalogo = db.produtos.filter((produto) => produtoEhPneu(produto) && String(produto.status || "").toLowerCase() !== "inativo");
+  const termo = String(vendaRascunho.buscaProduto || "");
+  const busca = normalizarBuscaCliente(termo.trim());
+  const produtos = catalogo.filter((produto) => !busca || normalizarBuscaCliente([
+    produto.produtoId, produto.nome, produto.categoria, produto.medida
+  ].join(" ")).includes(busca));
+  const quantidadeSelecionada = vendaRascunho.itens.filter((item) => item.tipo === "pneu").reduce((soma, item) => soma + item.qtd, 0);
   return `<section class="card venda-etapa-conteudo">
-    <span class="meta">Etapa 2 de 4</span><h2>Selecione os pneus</h2><p class="hint">Produtos apresentados em lista. Informe a quantidade ou use os botões + e −.</p>
-    <div class="venda-lista">${itensMarkup("pneu")}</div>
-    <div class="venda-subtotal"><span>${vendaRascunho.itens.filter((i) => i.tipo === "pneu").reduce((q, i) => q + i.qtd, 0)} pneus selecionados</span><strong>Subtotal pneus: ${money(subtotalPorTipo("pneu"))}</strong></div>
+    <span class="meta">Etapa 2 de 4</span><h2>Catálogo de pneus</h2><p class="hint">Pesquise por nome, código, categoria ou medida e ajuste a quantidade no próprio produto.</p>
+    <div class="produto-venda-toolbar">
+      <label>Buscar no catálogo<input id="buscaProdutoVenda" type="search" placeholder="Ex.: Continental, 205/55 R16 ou código" autocomplete="off" value="${escapeHtml(termo)}"></label>
+      <span class="produto-contagem">${produtos.length} de ${catalogo.length} produtos</span>
+    </div>
+    <div class="produto-venda-grid">${produtos.length ? produtos.map(produtoVendaCardMarkup).join("") : `<p class="hint">${catalogo.length ? "Nenhum produto corresponde à busca." : "Nenhum pneu ativo cadastrado. Use a aba Produtos para montar o catálogo."}</p>`}</div>
+    <div class="venda-subtotal"><span>${quantidadeSelecionada} pneus selecionados</span><strong>Subtotal pneus: ${money(subtotalPorTipo("pneu"))}</strong></div>
     <div class="venda-navegacao"><button class="btn ghost" type="button" data-anterior>← Anterior</button><button class="btn" type="button" data-proxima>Próximo: Serviços →</button></div>
   </section>`;
 }
@@ -601,13 +700,7 @@ function renderVenda() {
   if (busca) {
     busca.oninput = () => {
       vendaRascunho.clienteBusca = busca.value;
-      const termo = busca.value.trim().toLocaleLowerCase("pt-BR");
-      const cliente = db.clientes.find((c) => {
-        const nomeDoc = `${c.nome}${c.documento ? ` — ${c.documento}` : ""}`.toLocaleLowerCase("pt-BR");
-        return termo && (termo === nomeDoc || termo === String(c.nome || "").toLocaleLowerCase("pt-BR") ||
-          termo === String(c.documento || "").toLocaleLowerCase("pt-BR"));
-      });
-      vendaRascunho.clienteId = cliente?.id || "";
+      vendaRascunho.clienteId = "";
       vendaRascunho.veiculoId = "";
       render();
       const novoCampo = document.getElementById("buscaClienteVenda");
@@ -615,6 +708,23 @@ function renderVenda() {
       novoCampo.setSelectionRange(novoCampo.value.length, novoCampo.value.length);
     };
   }
+  document.querySelectorAll("[data-cliente-venda]").forEach((button) => button.onclick = () => {
+    const cliente = db.clientes.find((item) => item.id === button.dataset.clienteVenda);
+    if (!cliente) return;
+    vendaRascunho.clienteId = cliente.id;
+    vendaRascunho.clienteBusca = cliente.nome;
+    vendaRascunho.veiculoId = "";
+    render();
+  });
+  const buscaProduto = document.getElementById("buscaProdutoVenda");
+  if (buscaProduto) buscaProduto.oninput = () => {
+    const posicao = buscaProduto.selectionStart;
+    vendaRascunho.buscaProduto = buscaProduto.value;
+    render();
+    const novoCampo = document.getElementById("buscaProdutoVenda");
+    novoCampo.focus();
+    novoCampo.setSelectionRange(posicao, posicao);
+  };
   const veiculo = document.getElementById("veiculoVenda");
   if (veiculo) veiculo.onchange = () => { vendaRascunho.veiculoId = veiculo.value; };
 
@@ -666,16 +776,27 @@ async function concluirVenda() {
       tipo: item.tipo, produtoRef: item.produtoRef, servicoRef: item.servicoRef, qtd: item.qtd
     }))
   };
+  let pedido;
   try {
-    const pedido = await api("/api/vendas", { method: "POST", body: JSON.stringify(corpo) });
-    vendaRascunho = null;
-    pedidoId = pedido.id;
-    etapaVenda = 1;
+    pedido = await api("/api/vendas", { method: "POST", body: JSON.stringify(corpo) });
+  } catch (error) {
+    alert(`Não foi possível salvar o pedido: ${error.message}`);
+    return;
+  }
+
+  vendaRascunho = null;
+  pedidoId = pedido.id;
+  etapaVenda = 1;
+  try {
     await load();
+  } catch (error) {
+    pedidoId = null;
     render();
-    try { await baixarPdf(pedido.id); }
-    catch (error) { alert(`A venda ${pedido.numero} foi concluída, mas não foi possível baixar o PDF: ${error.message}`); }
-  } catch (error) { alert(`Não foi possível concluir a venda: ${error.message}`); }
+    alert(`O pedido ${pedido.numero} foi salvo, mas não foi possível atualizar a tela: ${error.message}`);
+  }
+  render();
+  try { await baixarPdf(pedido.id); }
+  catch (error) { alert(`O pedido ${pedido.numero} foi salvo, mas não foi possível baixar o PDF: ${error.message}`); }
 }
 
 async function baixarPdf(id) {

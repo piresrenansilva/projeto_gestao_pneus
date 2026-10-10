@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FabricaPneus")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2d0f566768f18a808284f23bf392729d99700a40")]
 [assembly: System.Reflection.AssemblyProductAttribute("FabricaPneus")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FabricaPneus")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
