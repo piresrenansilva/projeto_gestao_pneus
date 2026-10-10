@@ -1,15 +1,36 @@
+IF OBJECT_ID('dbo.clientes', 'U') IS NULL
+CREATE TABLE dbo.clientes (
+    id          uniqueidentifier NOT NULL CONSTRAINT DF_clientes_id DEFAULT NEWID() CONSTRAINT PK_clientes PRIMARY KEY,
+    criadoEm    datetime2        NOT NULL CONSTRAINT DF_clientes_criadoEm DEFAULT SYSDATETIME(),
+    nome        nvarchar(200)    NOT NULL,
+    tipo        nvarchar(30)     NULL,
+    documento   nvarchar(30)     NULL,
+    telefone    nvarchar(30)     NULL,
+    email       nvarchar(150)    NULL,
+    cep         nvarchar(12)     NULL,
+    endereco    nvarchar(200)    NULL,
+    numero      nvarchar(20)     NULL,
+    complemento nvarchar(100)    NULL,
+    bairro      nvarchar(100)    NULL,
+    cidade      nvarchar(100)    NULL,
+    estado      nvarchar(2)      NULL,
+    status      nvarchar(30)     NOT NULL CONSTRAINT DF_clientes_status DEFAULT N'Ativo',
+    obs         nvarchar(500)    NULL
+);
+GO
+
 IF OBJECT_ID('dbo.produtos', 'U') IS NULL
 CREATE TABLE dbo.produtos (
     id uniqueidentifier NOT NULL CONSTRAINT DF_produtos_id DEFAULT NEWID() CONSTRAINT PK_produtos PRIMARY KEY,
     criadoEm datetime2 NOT NULL CONSTRAINT DF_produtos_criadoEm DEFAULT SYSDATETIME(),
-    codigo nvarchar(60) NULL,
+    produtoId nvarchar(60) NULL,
     nome nvarchar(200) NOT NULL,
     categoria nvarchar(80) NULL,
     medida nvarchar(60) NULL,
     unidade nvarchar(20) NULL,
     preco decimal(12,2) NOT NULL CONSTRAINT DF_produtos_preco DEFAULT 0,
     custo decimal(12,2) NOT NULL CONSTRAINT DF_produtos_custo DEFAULT 0,
-    descricao nvarchar(500) NULL,
+    obs nvarchar(500) NULL,
     status nvarchar(30) NOT NULL CONSTRAINT DF_produtos_status DEFAULT N'Ativo'
 );
 GO
@@ -37,7 +58,8 @@ IF OBJECT_ID('dbo.estoque', 'U') IS NULL
 CREATE TABLE dbo.estoque (
     id        uniqueidentifier NOT NULL CONSTRAINT DF_estoque_id DEFAULT NEWID() CONSTRAINT PK_estoque PRIMARY KEY,
     criadoEm  datetime2        NOT NULL CONSTRAINT DF_estoque_criadoEm DEFAULT SYSDATETIME(),
-    sku       nvarchar(50)  NULL,
+    produtoId nvarchar(60)  NULL,
+    produtoRef uniqueidentifier NULL,
     item      nvarchar(200) NULL,
     medida    nvarchar(50)  NULL,
     tipo      nvarchar(30)  NULL,
@@ -98,7 +120,7 @@ CREATE TABLE dbo.pedido_itens (
     id         uniqueidentifier NOT NULL CONSTRAINT DF_pedido_itens_id DEFAULT NEWID() CONSTRAINT PK_pedido_itens PRIMARY KEY,
     criadoEm   datetime2        NOT NULL CONSTRAINT DF_pedido_itens_criadoEm DEFAULT SYSDATETIME(),
     pedidoId   uniqueidentifier NOT NULL CONSTRAINT FK_pedido_itens_pedido REFERENCES dbo.pedidos (id) ON DELETE CASCADE,
-    codigo     nvarchar(50)  NULL,
+    produtoId  nvarchar(50)  NULL,
     descricao  nvarchar(200) NULL,
     medida     nvarchar(50)  NULL,
     qtd        int           NOT NULL CONSTRAINT DF_pedido_itens_qtd DEFAULT 0,

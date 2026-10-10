@@ -69,13 +69,14 @@ static class Esquema
     // rota da API -> tabela e colunas (os nomes batem com o JSON usado no site)
     public static readonly Dictionary<string, Def> Tabelas = new()
     {
-        ["produtos"] = new("produtos", new[] { S("codigo"), S("nome"), S("categoria"), S("medida"), S("unidade"), M("preco"), M("custo"), S("descricao"), S("status") }),
+        ["clientes"] = new("clientes", new[] { S("nome"), S("tipo"), S("documento"), S("telefone"), S("email"), S("cep"), S("endereco"), S("numero"), S("complemento"), S("bairro"), S("cidade"), S("estado"), S("status"), S("obs") }),
+        ["produtos"] = new("produtos", new[] { S("produtoId"), S("nome"), S("categoria"), S("medida"), S("unidade"), M("preco"), M("custo"), S("obs"), S("status") }),
         ["carcacas"] = new("carcacas", new[] { S("fogo"), S("medida"), S("dono"), S("origem"), I("qtd"), T("entrada"), S("status"), S("obs") }),
-        ["estoque"] = new("estoque", new[] { S("sku"), S("item"), S("medida"), S("tipo"), I("qtd"), I("minimo"), S("local") }),
+        ["estoque"] = new("estoque", new[] { S("produtoId"), S("item"), S("medida"), S("tipo"), I("qtd"), I("minimo"), S("local") }),
         ["producao"] = new("producao", new[] { T("data"), S("turno"), S("medida"), I("qtd"), I("carcacas"), S("banda"), S("operador"), S("status") }),
         ["cargas"] = new("cargas", new[] { S("tipo"), T("data"), S("placa"), S("motorista"), S("parceiro"), S("nf"), I("qtd"), S("item"), S("status") }),
         ["pedidos"] = new("pedidos", new[] { new Col("numero", 's', true), T("data"), S("cliente"), S("pagamento"), S("status"), S("vendedor"), T("previsao"), S("obs") }),
-        ["itens"] = new("pedido_itens", new[] { new Col("pedidoId", 'g'), S("codigo"), S("descricao"), S("medida"), I("qtd"), M("unitario") }),
+        ["itens"] = new("pedido_itens", new[] { new Col("pedidoId", 'g'), S("produtoId"), S("descricao"), S("medida"), I("qtd"), M("unitario") }),
         ["financeiro"] = new("financeiro", new[] { T("data"), S("tipo"), S("categoria"), S("descricao"), M("valor") }),
         ["contas"] = new("contas", new[] { S("tipo"), S("pessoa"), S("descricao"), M("valor"), T("vencimento"), S("boleto"), S("status") }),
         ["boletos"] = new("boletos", new[] { S("origem"), S("pessoa"), S("numero"), M("valor"), T("vencimento"), S("ref"), S("status") }),
@@ -109,26 +110,126 @@ static class Banco
             await cmd.ExecuteNonQueryAsync();
         }
 
-        // Migração compatível com bancos existentes: cria a coluna em um lote separado,
-        // para o SQL Server reconhecer produtoId ao compilar os comandos seguintes.
+        await using (var colunasProduto = new SqlCommand(@"
+            IF COL_LENGTH('dbo.produtos', 'produtoId') IS NULL AND COL_LENGTH('dbo.produtos', 'codigo') IS NOT NULL
+                EXEC sp_rename 'dbo.produtos.codigo', 'produtoId', 'COLUMN';
+            IF COL_LENGTH('dbo.produtos', 'obs') IS NULL AND COL_LENGTH('dbo.produtos', 'descricao') IS NOT NULL
+                EXEC sp_rename 'dbo.produtos.descricao', 'obs', 'COLUMN';", con))
+        {
+            await colunasProduto.ExecuteNonQueryAsync();
+        }
+
+        await using (var colunaItemPedido = new SqlCommand(@"
+            IF COL_LENGTH('dbo.pedido_itens', 'produtoId') IS NULL AND COL_LENGTH('dbo.pedido_itens', 'codigo') IS NOT NULL
+                EXEC sp_rename 'dbo.pedido_itens.codigo', 'produtoId', 'COLUMN';", con))
+        {
+            await colunaItemPedido.ExecuteNonQueryAsync();
+        }
+
         await using (var coluna = new SqlCommand(@"
-            IF COL_LENGTH('dbo.estoque', 'produtoId') IS NULL
-                ALTER TABLE dbo.estoque ADD produtoId uniqueidentifier NULL;", con))
+            IF COL_LENGTH('dbo.estoque', 'produtoRef') IS NULL
+                ALTER TABLE dbo.estoque ADD produtoRef uniqueidentifier NULL;", con))
         {
             await coluna.ExecuteNonQueryAsync();
+        }
+
+        await using (var migrarEstoque = new SqlCommand(@"
+            DECLARE @fk sysname;
+            DECLARE @sql nvarchar(max);
+            SELECT TOP (1) @fk = fk.name
+            FROM sys.foreign_keys fk
+            JOIN sys.foreign_key_columns fkc ON fkc.constraint_object_id = fk.object_id
+            JOIN sys.columns c ON c.object_id = fkc.parent_object_id AND c.column_id = fkc.parent_column_id
+            WHERE fk.parent_object_id = OBJECT_ID('dbo.estoque')
+                AND fk.referenced_object_id = OBJECT_ID('dbo.produtos')
+                AND c.name = 'produtoId';
+
+            IF @fk IS NOT NULL
+            BEGIN
+                SET @sql = N'ALTER TABLE dbo.estoque DROP CONSTRAINT ' + QUOTENAME(@fk);
+                EXEC(@sql);
+                IF EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.estoque') AND name = 'UX_estoque_produtoId')
+                    DROP INDEX UX_estoque_produtoId ON dbo.estoque;
+                EXEC(N'UPDATE dbo.estoque
+                      SET produtoRef = TRY_CONVERT(uniqueidentifier, produtoId)
+                      WHERE produtoRef IS NULL AND TRY_CONVERT(uniqueidentifier, produtoId) IS NOT NULL');
+
+                IF COL_LENGTH('dbo.estoque', 'sku') IS NOT NULL
+                BEGIN
+                    ALTER TABLE dbo.estoque DROP COLUMN produtoId;
+                    EXEC sp_rename 'dbo.estoque.sku', 'produtoId', 'COLUMN';
+                END
+                ELSE
+                    EXEC(N'UPDATE e SET produtoId = p.produtoId
+                          FROM dbo.estoque e
+                          JOIN dbo.produtos p ON p.id = e.produtoRef');
+            END
+            ELSE IF COL_LENGTH('dbo.estoque', 'sku') IS NOT NULL
+            BEGIN
+                IF COL_LENGTH('dbo.estoque', 'produtoId') IS NULL
+                    EXEC sp_rename 'dbo.estoque.sku', 'produtoId', 'COLUMN';
+                ELSE
+                BEGIN
+                    EXEC(N'UPDATE dbo.estoque
+                          SET produtoId = sku
+                          WHERE (produtoId IS NULL OR produtoId = N'''') AND sku IS NOT NULL');
+                    ALTER TABLE dbo.estoque DROP COLUMN sku;
+                END
+            END;
+
+            DECLARE @tipoId sysname;
+            DECLARE @tamanhoId smallint;
+            DECLARE @tipoRef sysname;
+            DECLARE @tamanhoRef smallint;
+            SELECT @tipoId = t.name, @tamanhoId = c.max_length
+            FROM sys.columns c
+            JOIN sys.types t ON t.user_type_id = c.user_type_id
+            WHERE c.object_id = OBJECT_ID('dbo.produtos') AND c.name = 'id';
+            SELECT @tipoRef = t.name, @tamanhoRef = c.max_length
+            FROM sys.columns c
+            JOIN sys.types t ON t.user_type_id = c.user_type_id
+            WHERE c.object_id = OBJECT_ID('dbo.estoque') AND c.name = 'produtoRef';
+            IF EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.estoque') AND name = 'UX_estoque_produtoRef')
+                DROP INDEX UX_estoque_produtoRef ON dbo.estoque;
+
+            IF @tipoId IN ('char', 'varchar', 'nchar', 'nvarchar')
+                AND (@tipoRef <> @tipoId OR @tamanhoRef <> @tamanhoId)
+            BEGIN
+                SET @sql = N'ALTER TABLE dbo.estoque ALTER COLUMN produtoRef ' + @tipoId + N'(' +
+                    CASE WHEN @tamanhoId = -1 THEN N'MAX'
+                         WHEN @tipoId IN ('nchar', 'nvarchar') THEN CONVERT(nvarchar(10), @tamanhoId / 2)
+                         ELSE CONVERT(nvarchar(10), @tamanhoId) END + N') NULL';
+                EXEC(@sql);
+            END
+            ELSE IF @tipoId = 'uniqueidentifier' AND @tipoRef <> 'uniqueidentifier'
+                ALTER TABLE dbo.estoque ALTER COLUMN produtoRef uniqueidentifier NULL;
+
+            IF COL_LENGTH('dbo.estoque', 'produtoId') IS NULL
+                ALTER TABLE dbo.estoque ADD produtoId nvarchar(60) NULL;", con))
+        {
+            await migrarEstoque.ExecuteNonQueryAsync();
         }
 
         // Garante o vínculo e cria uma linha de estoque para produtos já cadastrados.
         const string sincronizarEstoque = @"
             IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_estoque_produtos')
                 ALTER TABLE dbo.estoque ADD CONSTRAINT FK_estoque_produtos
-                    FOREIGN KEY (produtoId) REFERENCES dbo.produtos(id) ON DELETE CASCADE;
-            IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_estoque_produtoId' AND object_id = OBJECT_ID('dbo.estoque'))
-                CREATE UNIQUE INDEX UX_estoque_produtoId ON dbo.estoque(produtoId) WHERE produtoId IS NOT NULL;
-            INSERT INTO dbo.estoque (produtoId, sku, item, medida, tipo, qtd, minimo)
-            SELECT p.id, p.codigo, p.nome, p.medida, N'produto', 0, 0
+                    FOREIGN KEY (produtoRef) REFERENCES dbo.produtos(id) ON DELETE CASCADE;
+            IF NOT EXISTS (
+                SELECT 1 FROM sys.indexes i
+                JOIN sys.index_columns ic ON ic.object_id = i.object_id AND ic.index_id = i.index_id
+                JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
+                WHERE i.object_id = OBJECT_ID('dbo.estoque') AND i.is_unique = 1 AND c.name = 'produtoRef')
+                CREATE UNIQUE INDEX UX_estoque_produtoRef ON dbo.estoque(produtoRef) WHERE produtoRef IS NOT NULL;
+            UPDATE e
+            SET produtoId = p.produtoId, item = p.nome, medida = p.medida
+            FROM dbo.estoque e
+            JOIN dbo.produtos p ON p.id = e.produtoRef
+            WHERE e.tipo = N'produto';
+            INSERT INTO dbo.estoque (produtoRef, produtoId, item, medida, tipo, qtd, minimo)
+            SELECT p.id, p.produtoId, p.nome, p.medida, N'produto', 0, 0
             FROM dbo.produtos p
-            WHERE NOT EXISTS (SELECT 1 FROM dbo.estoque e WHERE e.produtoId = p.id);
+            WHERE NOT EXISTS (SELECT 1 FROM dbo.estoque e WHERE e.produtoRef = p.id);
             ";
         await using var sync = new SqlCommand(sincronizarEstoque, con);
         await sync.ExecuteNonQueryAsync();
@@ -242,13 +343,13 @@ static class Banco
         await using var cmd = con.CreateCommand();
         cmd.Transaction = tx;
         cmd.CommandText = @"
-IF EXISTS (SELECT 1 FROM dbo.estoque WHERE produtoId = @id)
-    UPDATE dbo.estoque SET sku=@codigo, item=@nome, medida=@medida WHERE produtoId=@id;
+IF EXISTS (SELECT 1 FROM dbo.estoque WHERE produtoRef = @id)
+    UPDATE dbo.estoque SET produtoId=@produtoId, item=@nome, medida=@medida WHERE produtoRef=@id;
 ELSE
-    INSERT INTO dbo.estoque (produtoId, sku, item, medida, tipo, qtd, minimo)
-    VALUES (@id, @codigo, @nome, @medida, N'produto', 0, 0);";
+    INSERT INTO dbo.estoque (produtoRef, produtoId, item, medida, tipo, qtd, minimo)
+    VALUES (@id, @produtoId, @nome, @medida, N'produto', 0, 0);";
         cmd.Parameters.Add("@id", SqlDbType.UniqueIdentifier).Value = id;
-        cmd.Parameters.Add("@codigo", SqlDbType.NVarChar, 60).Value = Valor("codigo");
+        cmd.Parameters.Add("@produtoId", SqlDbType.NVarChar, 60).Value = Valor("produtoId");
         cmd.Parameters.Add("@nome", SqlDbType.NVarChar, 200).Value = Valor("nome");
         cmd.Parameters.Add("@medida", SqlDbType.NVarChar, 60).Value = Valor("medida");
         await cmd.ExecuteNonQueryAsync();

@@ -9,7 +9,7 @@ const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Math.random().toStr
 const total = (itens) => (itens || []).reduce((a, i) => a + (Number(i.qtd) || 0) * (Number(i.unitario) || 0), 0);
 const overdue = (date, status) => date && !["pago", "paga", "cancelado", "cancelada"].includes(status) && date < today();
 
-let db = { produtos: [], carcacas: [], estoque: [], producao: [], cargas: [], pedidos: [], financeiro: [], contas: [], boletos: [] };
+let db = { clientes: [], produtos: [], carcacas: [], estoque: [], producao: [], cargas: [], pedidos: [], financeiro: [], contas: [], boletos: [] };
 let page = "painel";
 let pedidoId = null;
 let editing = null;
@@ -31,7 +31,7 @@ async function api(url, options = {}) {
 
 async function load() {
   db = await api("/api/dados");
-  for (const key of ["produtos", "carcacas", "estoque", "producao", "cargas", "pedidos", "financeiro", "contas", "boletos"])
+  for (const key of ["clientes", "produtos", "carcacas", "estoque", "producao", "cargas", "pedidos", "financeiro", "contas", "boletos"])
     if (!Array.isArray(db[key])) db[key] = [];
   db.pedidos = db.pedidos.map((p) => ({ ...p, itens: p.itens || [] }));
 }
@@ -53,12 +53,13 @@ function escapeHtml(value) {
 }
 
 const NAV = [
-  ["painel", "Painel"], ["produtos", "Produtos"], ["carcacas", "Carcaças"], ["estoque", "Estoque"], ["producao", "Produção"],
+  ["painel", "Painel"], ["clientes", "Clientes"], ["produtos", "Produtos"], ["carcacas", "Carcaças"], ["estoque", "Estoque"], ["producao", "Produção"],
   ["cargas", "Carga e descarga"], ["vendas", "Vendas"], ["financeiro", "Entradas e saídas"],
   ["contas", "Pagar e receber"], ["boletos", "Boletos"]
 ];
 const TITLES = {
   painel: ["Painel", "Todos os indicadores são consultados no SQL Server."],
+  clientes: ["Clientes", "Cadastro e contato dos clientes."],
   produtos: ["Produtos", "Catálogo de produtos cadastrado no SQL Server."],
   carcacas: ["Carcaças", "Contagem por marca de fogo, dono e situação."],
   estoque: ["Estoque", "Pneus, recapados e insumos."],
@@ -93,12 +94,28 @@ function field(name, label, type, extra = "") {
 }
 
 const FORMS = {
+  clientes: () => [
+    field("nome", "Nome / Razão social", "text", "required"),
+    field("tipo", "Tipo de pessoa", "select"),
+    field("documento", "CPF / CNPJ", "text"),
+    field("telefone", "Telefone", "tel"),
+    field("email", "E-mail", "email"),
+    field("cep", "CEP", "text"),
+    field("endereco", "Endereço", "text"),
+    field("numero", "Número", "text"),
+    field("complemento", "Complemento", "text"),
+    field("bairro", "Bairro", "text"),
+    field("cidade", "Cidade", "text"),
+    field("estado", "Estado", "text", "maxlength='2'"),
+    field("status", "Status", "select"),
+    field("obs", "Observações", "textarea")
+  ].join(""),
   produtos: () => [
-    field("codigo", "Código / SKU", "text"), field("nome", "Descrição", "text", "required"),
+    field("ProdutoId", "ProdutoId", "text"), field("nome", "Nome", "text", "required"),
     field("categoria", "Categoria", "text"), field("medida", "Medida", "text"),
     field("unidade", "Unidade (ex.: un, pneu)", "text"), field("preco", "Preço de venda", "number", "required min='0' step='0.01'"),
     field("custo", "Custo unitário", "number", "required min='0' step='0.01'"), field("status", "Status", "select"),
-    field("descricao", "Descrição", "textarea")
+    field("obs", "Observações", "textarea")
   ].join(""),
   carcacas: () => [
     field("fogo", "Marca de fogo", "text", "required"),
@@ -111,7 +128,7 @@ const FORMS = {
     field("obs", "Observação", "textarea")
   ].join(""),
   estoque: () => [
-    field("sku", "SKU", "text", "required"), field("item", "Descrição", "text", "required"),
+    field("ProdutoId", "ProdutoId", "text", "required"), field("item", "Descrição", "text", "required"),
     field("medida", "Medida", "text"),
     field("qtd", "Quantidade", "number", "required"), field("minimo", "Mínimo", "number", "required")
   ].join(""),
@@ -152,7 +169,7 @@ const FORMS = {
     field("obs", "Observação", "textarea")
   ].join(""),
   item: () => [
-    field("codigo", "Código", "text"), field("medida", "Medida", "text"),
+    field("ProdutoId", "ProdutoId", "text"), field("medida", "Medida", "text"),
     field("descricao", "Descrição", "text", "required"),
     field("qtd", "Quantidade", "number", "required min='1' step='1'"),
     field("unitario", "Preço unitário", "number", "required min='0' step='0.01'")
@@ -160,6 +177,7 @@ const FORMS = {
 };
 
 const SELECTS = {
+  clientes: { tipo: ["Pessoa física", "Pessoa jurídica"], status: ["Ativo", "Inativo"] },
   produtos: { status: ["Ativo", "Inativo"] },
   carcacas: {
     origem: ["cliente", "compra", "retorno"],
@@ -220,7 +238,7 @@ document.getElementById("form").onsubmit = async (e) => {
 
 function openForm(kind, row) {
   editing = { kind, id: row?.id || null };
-  const titles = { produtos: row ? "Editar produto" : "Cadastrar produto", capa: "Nova capa", item: row ? "Editar item" : "Novo item", carcacas: "Carcaça", estoque: "Estoque", producao: "Produção", cargas: "Movimento", financeiro: "Lançamento", contas: "Título", boletos: "Boleto" };
+  const titles = { clientes: row ? "Editar cliente" : "Cadastrar cliente", produtos: row ? "Editar produto" : "Cadastrar produto", capa: "Nova capa", item: row ? "Editar item" : "Novo item", carcacas: "Carcaça", estoque: "Estoque", producao: "Produção", cargas: "Movimento", financeiro: "Lançamento", contas: "Título", boletos: "Boleto" };
   document.getElementById("modalTitle").textContent = titles[kind] || "Registro";
   document.getElementById("formFields").innerHTML = FORMS[kind]();
   const form = document.getElementById("form");
@@ -232,14 +250,12 @@ function openForm(kind, row) {
     // Em registros vinculados, usa a descrição atual do cadastro do produto
     // quando o texto legado da tabela de estoque estiver vazio.
     if (kind === "estoque") {
-      // Alguns registros antigos não possuem produtoId ou guardam o SKU como vínculo.
-      // Primeiro tenta o ID; depois tenta localizar pelo SKU/código do produto.
+      // Localiza o produto pelo código textual compartilhado com o estoque.
       const produto = db.produtos.find(p =>
-        (row.produtoId && String(p.id).toLowerCase() === String(row.produtoId).toLowerCase()) ||
-        (row.sku && p.codigo && String(p.codigo).trim().toLowerCase() === String(row.sku).trim().toLowerCase())
+        p.produtoId && row.produtoId && String(p.produtoId).trim().toLowerCase() === String(row.produtoId).trim().toLowerCase()
       );
-      if (form.elements.item) form.elements.item.value = produto?.nome || produto?.descricao || row.item || "";
-      if (form.elements.sku) form.elements.sku.value = row.sku || produto?.codigo || "";
+      if (form.elements.item) form.elements.item.value = produto?.nome || row.item || "";
+      if (form.elements.produtoId) form.elements.produtoId.value = row.produtoId || produto?.produtoId || "";
       if (form.elements.medida) form.elements.medida.value = row.medida || produto?.medida || "";
     }
   } else if (form.elements.data) form.elements.data.value = today();
@@ -275,7 +291,7 @@ function render() {
   const [title, lede] = TITLES[page];
   document.getElementById("title").textContent = title;
   document.getElementById("lede").textContent = lede;
-  const creates = { produtos: "Cadastrar produto", carcacas: "Nova carcaça", estoque: "Novo item", producao: "Novo apontamento", cargas: "Novo movimento", vendas: "Novo pedido", financeiro: "Novo lançamento", contas: "Novo título", boletos: "Novo boleto" };
+  const creates = { clientes: "Cadastrar cliente", produtos: "Cadastrar produto", carcacas: "Nova carcaça", estoque: "Novo item", producao: "Novo apontamento", cargas: "Novo movimento", vendas: "Novo pedido", financeiro: "Novo lançamento", contas: "Novo título", boletos: "Novo boleto" };
   actions.innerHTML = creates[page] ? `<button class="btn" id="addBtn">${creates[page]}</button>` : "";
   view.innerHTML = views[page]();
   const add = document.getElementById("addBtn");
@@ -317,14 +333,13 @@ const views = {
       <section class="card"><h2>Alertas</h2>${alertas.length ? `<ul class="list">${alertas.map((a) => `<li>${a}</li>`).join("")}</ul>` : `<p class="hint">Nenhum alerta.</p>`}</section>
     </div>`;
   },
-  produtos() { return table("produtos", ["Código", "Descrição", "Categoria", "Medida", "Preço", "Custo", "Status"], (r) => [r.codigo, r.nome, r.categoria, r.medida, money(r.preco), money(r.custo), badge(r.status)]); },
+  produtos() { return table("produtos", ["produtoId", "Nome", "Categoria", "Medida", "Preço", "Custo", "Status"], (r) => [r.produtoId, r.nome, r.categoria, r.medida, money(r.preco), money(r.custo), badge(r.status)]); },
   carcacas() { return table("carcacas", ["Fogo", "Medida", "Dono", "Qtd", "Entrada", "Status"], (r) => [r.fogo, r.medida, r.dono, r.qtd, br(r.entrada), badge(r.status)]); },
-  estoque() { return table("estoque", ["SKU", "Descrição", "Medida", "Qtd", "Mínimo"], (r) => {
+  estoque() { return table("estoque", ["produtoId", "Descrição", "Medida", "Qtd", "Mínimo"], (r) => {
     const produto = db.produtos.find(p =>
-      (r.produtoId && String(p.id).toLowerCase() === String(r.produtoId).toLowerCase()) ||
-      (r.sku && p.codigo && String(p.codigo).trim().toLowerCase() === String(r.sku).trim().toLowerCase())
+      p.produtoId && r.produtoId && String(p.produtoId).trim().toLowerCase() === String(r.produtoId).trim().toLowerCase()
     );
-    return [r.sku || produto?.codigo || "", produto?.nome || produto?.descricao || r.item || "", r.medida || produto?.medida || "", r.qtd, r.minimo];
+    return [r.produtoId || produto?.produtoId || "", produto?.nome || r.item || "", r.medida || produto?.medida || "", r.qtd, r.minimo];
   }); },
   producao() { return table("producao", ["Data", "Turno", "Medida", "Qtd", "Carcaças", "Operador", "Status"], (r) => [br(r.data), r.turno, r.medida, r.qtd, r.carcacas, r.operador, badge(r.status)]); },
   cargas() { return table("cargas", ["Tipo", "Data", "Placa", "Parceiro", "NF", "Qtd", "Status"], (r) => [r.tipo, br(r.data), r.placa, r.parceiro, r.nf, r.qtd, badge(r.status)]); },
@@ -346,7 +361,11 @@ const views = {
   },
   financeiro() { return table("financeiro", ["Data", "Tipo", "Categoria", "Descrição", "Valor"], (r) => [br(r.data), badge(r.tipo), r.categoria, r.descricao, money(r.valor)]); },
   contas() { return table("contas", ["Tipo", "Pessoa", "Descrição", "Valor", "Vencimento", "Status"], (r) => [r.tipo, r.pessoa, r.descricao, money(r.valor), br(r.vencimento), badge(r.status, r.vencimento)]); },
-  boletos() { return table("boletos", ["Origem", "Pessoa", "Número", "Valor", "Vencimento", "Status"], (r) => [r.origem === "empresa" ? "Empresa" : "Cliente", r.pessoa, r.numero, money(r.valor), br(r.vencimento), badge(r.status, r.vencimento)]); }
+  boletos() { return table("boletos", ["Origem", "Pessoa", "Número", "Valor", "Vencimento", "Status"], (r) => [r.origem === "empresa" ? "Empresa" : "Cliente", r.pessoa, r.numero, money(r.valor), br(r.vencimento), badge(r.status, r.vencimento)]); },
+  clientes() { return table("clientes", ["ID", "Nome / Razão social", "Tipo", "CPF / CNPJ", "Telefone", "E-mail", "Cidade / UF", "Status"], (r) => [
+    escapeHtml(r.id), escapeHtml(r.nome), escapeHtml(r.tipo), escapeHtml(r.documento), escapeHtml(r.telefone), escapeHtml(r.email),
+    escapeHtml([r.cidade, r.estado].filter(Boolean).join(" / ")), badge(r.status)
+  ]); }
 };
 
 function renderPedido() {
@@ -366,10 +385,10 @@ function renderPedido() {
     <section class="card" style="margin-top:12px">
       <div class="back" style="justify-content:space-between"><h2>Itens</h2><button class="btn" id="addItem" type="button">Adicionar item</button></div>
       <div class="table-wrap" style="margin-top:12px"><table>
-        <thead><tr><th>Código</th><th>Descrição</th><th>Medida</th><th>Qtd</th><th>Unitário</th><th>Total</th><th></th></tr></thead>
+        <thead><tr><th>produtoId</th><th>Descrição</th><th>Medida</th><th>Qtd</th><th>Unitário</th><th>Total</th><th></th></tr></thead>
         <tbody>
           ${pedido.itens.map((item) => `<tr>
-            <td class="mono">${item.codigo || "—"}</td><td>${item.descricao}</td><td>${item.medida || "—"}</td>
+            <td class="mono">${item.produtoId || "—"}</td><td>${item.descricao}</td><td>${item.medida || "—"}</td>
             <td class="num">${item.qtd}</td><td class="num">${money(item.unitario)}</td><td class="num">${money(item.qtd * item.unitario)}</td>
             <td><button class="btn ghost small" data-item="${item.id}" type="button">Editar</button>
             <button class="btn danger small" data-drop="${item.id}" type="button">Excluir</button></td></tr>`).join("") || `<tr><td colspan="7">Nenhum item neste pedido.</td></tr>`}
