@@ -7,6 +7,7 @@ CREATE TABLE dbo.clientes (
     documento   nvarchar(30)     NULL,
     telefone    nvarchar(30)     NULL,
     email       nvarchar(150)    NULL,
+    limiteCredito decimal(12,2)  NOT NULL CONSTRAINT DF_clientes_limiteCredito DEFAULT 0,
     cep         nvarchar(12)     NULL,
     endereco    nvarchar(200)    NULL,
     numero      nvarchar(20)     NULL,
@@ -16,6 +17,32 @@ CREATE TABLE dbo.clientes (
     estado      nvarchar(2)      NULL,
     status      nvarchar(30)     NOT NULL CONSTRAINT DF_clientes_status DEFAULT N'Ativo',
     obs         nvarchar(500)    NULL
+);
+GO
+
+IF OBJECT_ID('dbo.veiculos', 'U') IS NULL
+CREATE TABLE dbo.veiculos (
+    id       uniqueidentifier NOT NULL CONSTRAINT DF_veiculos_id DEFAULT NEWID() CONSTRAINT PK_veiculos PRIMARY KEY,
+    criadoEm datetime2        NOT NULL CONSTRAINT DF_veiculos_criadoEm DEFAULT SYSDATETIME(),
+    clienteId uniqueidentifier NOT NULL CONSTRAINT FK_veiculos_clientes REFERENCES dbo.clientes(id),
+    marca    nvarchar(80)     NULL,
+    modelo   nvarchar(120)    NOT NULL,
+    ano      nvarchar(10)     NULL,
+    placa    nvarchar(12)     NULL,
+    medidaPneu nvarchar(60)   NULL,
+    status   nvarchar(30)     NOT NULL CONSTRAINT DF_veiculos_status DEFAULT N'Ativo'
+);
+GO
+
+IF OBJECT_ID('dbo.servicos', 'U') IS NULL
+CREATE TABLE dbo.servicos (
+    id       uniqueidentifier NOT NULL CONSTRAINT DF_servicos_id DEFAULT NEWID() CONSTRAINT PK_servicos PRIMARY KEY,
+    criadoEm datetime2        NOT NULL CONSTRAINT DF_servicos_criadoEm DEFAULT SYSDATETIME(),
+    codigo   nvarchar(60)     NULL,
+    nome     nvarchar(150)    NOT NULL,
+    descricao nvarchar(300)  NULL,
+    preco    decimal(12,2)   NOT NULL CONSTRAINT DF_servicos_preco DEFAULT 0,
+    status   nvarchar(30)    NOT NULL CONSTRAINT DF_servicos_status DEFAULT N'Ativo'
 );
 GO
 
@@ -30,6 +57,7 @@ CREATE TABLE dbo.produtos (
     unidade nvarchar(20) NULL,
     preco decimal(12,2) NOT NULL CONSTRAINT DF_produtos_preco DEFAULT 0,
     custo decimal(12,2) NOT NULL CONSTRAINT DF_produtos_custo DEFAULT 0,
+    estoqueCentral int NOT NULL CONSTRAINT DF_produtos_estoqueCentral DEFAULT 0,
     obs nvarchar(500) NULL,
     status nvarchar(30) NOT NULL CONSTRAINT DF_produtos_status DEFAULT N'Ativo'
 );
@@ -111,7 +139,14 @@ CREATE TABLE dbo.pedidos (
     status     nvarchar(30)  NULL,
     vendedor   nvarchar(100) NULL,
     previsao   date          NULL,
-    obs        nvarchar(500) NULL
+    obs        nvarchar(500) NULL,
+    clienteId uniqueidentifier NULL,
+    veiculoId uniqueidentifier NULL,
+    descontoPercentual decimal(5,2) NOT NULL CONSTRAINT DF_pedidos_descontoPercentual DEFAULT 0,
+    descontoValor decimal(12,2) NOT NULL CONSTRAINT DF_pedidos_descontoValor DEFAULT 0,
+    box nvarchar(100) NULL,
+    agendamento date NULL,
+    horario nvarchar(10) NULL
 );
 GO
 
@@ -124,8 +159,37 @@ CREATE TABLE dbo.pedido_itens (
     descricao  nvarchar(200) NULL,
     medida     nvarchar(50)  NULL,
     qtd        int           NOT NULL CONSTRAINT DF_pedido_itens_qtd DEFAULT 0,
-    unitario   decimal(12,2) NOT NULL CONSTRAINT DF_pedido_itens_unitario DEFAULT 0
+    unitario   decimal(12,2) NOT NULL CONSTRAINT DF_pedido_itens_unitario DEFAULT 0,
+    tipo       nvarchar(20) NOT NULL CONSTRAINT DF_pedido_itens_tipo DEFAULT N'pneu',
+    produtoRef uniqueidentifier NULL,
+    servicoRef uniqueidentifier NULL
 );
+GO
+
+IF COL_LENGTH('dbo.clientes', 'limiteCredito') IS NULL
+    ALTER TABLE dbo.clientes ADD limiteCredito decimal(12,2) NOT NULL CONSTRAINT DF_clientes_limiteCredito DEFAULT 0;
+IF COL_LENGTH('dbo.produtos', 'estoqueCentral') IS NULL
+    ALTER TABLE dbo.produtos ADD estoqueCentral int NOT NULL CONSTRAINT DF_produtos_estoqueCentral DEFAULT 0;
+IF COL_LENGTH('dbo.pedidos', 'clienteId') IS NULL
+    ALTER TABLE dbo.pedidos ADD clienteId uniqueidentifier NULL;
+IF COL_LENGTH('dbo.pedidos', 'veiculoId') IS NULL
+    ALTER TABLE dbo.pedidos ADD veiculoId uniqueidentifier NULL;
+IF COL_LENGTH('dbo.pedidos', 'descontoPercentual') IS NULL
+    ALTER TABLE dbo.pedidos ADD descontoPercentual decimal(5,2) NOT NULL CONSTRAINT DF_pedidos_descontoPercentual DEFAULT 0;
+IF COL_LENGTH('dbo.pedidos', 'descontoValor') IS NULL
+    ALTER TABLE dbo.pedidos ADD descontoValor decimal(12,2) NOT NULL CONSTRAINT DF_pedidos_descontoValor DEFAULT 0;
+IF COL_LENGTH('dbo.pedidos', 'box') IS NULL
+    ALTER TABLE dbo.pedidos ADD box nvarchar(100) NULL;
+IF COL_LENGTH('dbo.pedidos', 'agendamento') IS NULL
+    ALTER TABLE dbo.pedidos ADD agendamento date NULL;
+IF COL_LENGTH('dbo.pedidos', 'horario') IS NULL
+    ALTER TABLE dbo.pedidos ADD horario nvarchar(10) NULL;
+IF COL_LENGTH('dbo.pedido_itens', 'tipo') IS NULL
+    ALTER TABLE dbo.pedido_itens ADD tipo nvarchar(20) NOT NULL CONSTRAINT DF_pedido_itens_tipo DEFAULT N'pneu';
+IF COL_LENGTH('dbo.pedido_itens', 'produtoRef') IS NULL
+    ALTER TABLE dbo.pedido_itens ADD produtoRef uniqueidentifier NULL;
+IF COL_LENGTH('dbo.pedido_itens', 'servicoRef') IS NULL
+    ALTER TABLE dbo.pedido_itens ADD servicoRef uniqueidentifier NULL;
 GO
 
 IF OBJECT_ID('dbo.financeiro', 'U') IS NULL
