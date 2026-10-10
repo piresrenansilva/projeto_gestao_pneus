@@ -38,6 +38,14 @@ app.MapPost("/api/vendas", async (JsonElement corpo) =>
     catch (Exception ex) { return Results.Problem(ex.Message); }
 });
 
+app.MapPut("/api/vendas/{id:guid}", async (Guid id, JsonElement corpo) =>
+{
+    try { return Results.Json(await Banco.CriarVendaAsync(cs, corpo, id)); }
+    catch (KeyNotFoundException ex) { return Results.NotFound(new { detail = ex.Message }); }
+    catch (InvalidOperationException ex) { return Results.Conflict(new { detail = ex.Message }); }
+    catch (Exception ex) { return Results.Problem(ex.Message); }
+});
+
 app.MapGet("/api/pedidos/{id:guid}/pdf", async (Guid id) =>
 {
     try
@@ -54,18 +62,24 @@ foreach (var (rota, def) in Esquema.Tabelas)
     app.MapPost($"/api/{rota}", async (JsonElement corpo) =>
     {
         try { return Results.Json(new { id = await Banco.CriarAsync(cs, def, corpo) }); }
+        catch (KeyNotFoundException ex) { return Results.NotFound(new { detail = ex.Message }); }
+        catch (InvalidOperationException ex) { return Results.Conflict(new { detail = ex.Message }); }
         catch (Exception ex) { return Results.Problem(ex.Message); }
     });
 
     app.MapPut($"/api/{rota}/{{id:guid}}", async (Guid id, JsonElement corpo) =>
     {
         try { await Banco.AtualizarAsync(cs, def, id, corpo); return Results.NoContent(); }
+        catch (KeyNotFoundException ex) { return Results.NotFound(new { detail = ex.Message }); }
+        catch (InvalidOperationException ex) { return Results.Conflict(new { detail = ex.Message }); }
         catch (Exception ex) { return Results.Problem(ex.Message); }
     });
 
     app.MapDelete($"/api/{rota}/{{id:guid}}", async (Guid id) =>
     {
         try { await Banco.ExcluirAsync(cs, def, id); return Results.NoContent(); }
+        catch (KeyNotFoundException ex) { return Results.NotFound(new { detail = ex.Message }); }
+        catch (InvalidOperationException ex) { return Results.Conflict(new { detail = ex.Message }); }
         catch (Exception ex) { return Results.Problem(ex.Message); }
     });
 }
@@ -297,7 +311,7 @@ static class Banco
         return lista;
     }
 
-    public static async Task<object> CriarVendaAsync(string cs, JsonElement corpo)
+    public static async Task<object> CriarVendaAsync(string cs, JsonElement corpo, Guid? pedidoExistente = null)
     {
         static string Texto(JsonElement el, string nome) =>
             el.TryGetProperty(nome, out var valor) && valor.ValueKind != JsonValueKind.Null ? valor.ToString().Trim() : "";
@@ -312,7 +326,7 @@ static class Banco
         var previsao = DataOpcional(Texto(corpo, "previsao"));
         var agendamento = DataOpcional(Texto(corpo, "agendamento"));
         var pagamento = Texto(corpo, "pagamento");
-        var status = Texto(corpo, "status");
+        var status = pedidoExistente.HasValue ? "orçamento" : Texto(corpo, "status");
         var vendedor = Texto(corpo, "vendedor");
         var observacao = Texto(corpo, "obs");
         var box = Texto(corpo, "box");
@@ -332,6 +346,17 @@ static class Banco
         await using var con = new SqlConnection(cs);
         await con.OpenAsync();
         await using var tx = (SqlTransaction)await con.BeginTransactionAsync();
+        if (pedidoExistente is Guid idExistente)
+        {
+            await using var existenteCmd = new SqlCommand(
+                "SELECT status FROM dbo.pedidos WITH (UPDLOCK, HOLDLOCK) WHERE id = @id", con, tx);
+            existenteCmd.Parameters.Add("@id", SqlDbType.UniqueIdentifier).Value = idExistente;
+            var statusExistente = (string?)await existenteCmd.ExecuteScalarAsync()
+                ?? throw new KeyNotFoundException("O orçamento não foi encontrado.");
+            if (!string.Equals(statusExistente, "orçamento", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Somente orçamentos podem ser editados. Pedidos faturados não podem ser alterados.");
+        }
+
         string nomeCliente;
         await using (var clienteCmd = new SqlCommand(
             "SELECT nome FROM dbo.clientes WHERE id = @id AND status <> N'Inativo'", con, tx))
@@ -398,16 +423,34 @@ static class Banco
         }
 
         var descontoValor = decimal.Round(subtotal * percentual / 100m, 2, MidpointRounding.AwayFromZero);
+        if (corpo.TryGetProperty("descontoValor", out var descontoJson))
+        {
+            if (!decimal.TryParse(descontoJson.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out descontoValor))
+                throw new InvalidOperationException("Valor do desconto inválido.");
+            if (descontoValor < 0 || descontoValor > subtotal)
+                throw new InvalidOperationException("O desconto deve estar entre zero e o subtotal.");
+            descontoValor = decimal.Round(descontoValor, 2, MidpointRounding.AwayFromZero);
+            percentual = subtotal == 0
+                ? 0
+                : decimal.Round(descontoValor / subtotal * 100m, 2, MidpointRounding.AwayFromZero);
+        }
         var numero = "";
-        Guid idPedido;
-        await using (var pedidoCmd = new SqlCommand(@"
-INSERT INTO dbo.pedidos
+        var idPedido = pedidoExistente ?? Guid.Empty;
+        var comandoPedido = pedidoExistente.HasValue
+            ? @"UPDATE dbo.pedidos
+SET data=@data, cliente=@cliente, pagamento=@pagamento, vendedor=@vendedor, previsao=@previsao,
+    obs=@obs, clienteId=@clienteId, veiculoId=@veiculoId, descontoPercentual=@percentual,
+    descontoValor=@desconto, box=@box, agendamento=@agendamento, horario=@horario
+OUTPUT inserted.id, inserted.numero
+WHERE id=@id AND status=N'orçamento';"
+            : @"INSERT INTO dbo.pedidos
     (numero, data, cliente, pagamento, status, vendedor, previsao, obs, clienteId, veiculoId,
      descontoPercentual, descontoValor, box, agendamento, horario)
 OUTPUT inserted.id, inserted.numero
 VALUES
     ('PED-' + FORMAT(NEXT VALUE FOR dbo.seq_pedido, '0000'), @data, @cliente, @pagamento, @status,
-     @vendedor, @previsao, @obs, @clienteId, @veiculoId, @percentual, @desconto, @box, @agendamento, @horario);", con, tx))
+     @vendedor, @previsao, @obs, @clienteId, @veiculoId, @percentual, @desconto, @box, @agendamento, @horario);";
+        await using (var pedidoCmd = new SqlCommand(comandoPedido, con, tx))
         {
             pedidoCmd.Parameters.Add("@data", SqlDbType.Date).Value = data;
             pedidoCmd.Parameters.Add("@cliente", SqlDbType.NVarChar, 150).Value = nomeCliente;
@@ -425,10 +468,20 @@ VALUES
             pedidoCmd.Parameters.Add("@box", SqlDbType.NVarChar, 100).Value = box;
             pedidoCmd.Parameters.Add("@agendamento", SqlDbType.Date).Value = agendamento is null ? DBNull.Value : agendamento.Value;
             pedidoCmd.Parameters.Add("@horario", SqlDbType.NVarChar, 10).Value = horario;
+            if (pedidoExistente is Guid id)
+                pedidoCmd.Parameters.Add("@id", SqlDbType.UniqueIdentifier).Value = id;
             await using var rd = await pedidoCmd.ExecuteReaderAsync();
-            await rd.ReadAsync();
+            if (!await rd.ReadAsync())
+                throw new InvalidOperationException("O pedido deixou de ser um orçamento e não pode ser alterado.");
             idPedido = rd.GetGuid(0);
             numero = rd.GetString(1);
+        }
+
+        if (pedidoExistente.HasValue)
+        {
+            await using var removerItens = new SqlCommand("DELETE FROM dbo.pedido_itens WHERE pedidoId = @id", con, tx);
+            removerItens.Parameters.Add("@id", SqlDbType.UniqueIdentifier).Value = idPedido;
+            await removerItens.ExecuteNonQueryAsync();
         }
 
         foreach (var linha in linhas)
@@ -635,6 +688,19 @@ GROUP BY produtoRef;", con, tx);
         await using var cmd = con.CreateCommand();
         cmd.Transaction = tx;
 
+        if (def.Tabela == "pedido_itens" &&
+            corpo.TryGetProperty("pedidoId", out var pedidoIdJson) &&
+            Guid.TryParse(pedidoIdJson.ToString(), out var pedidoId))
+        {
+            await using var statusCmd = new SqlCommand(
+                "SELECT status FROM dbo.pedidos WITH (UPDLOCK, HOLDLOCK) WHERE id = @id", con, tx);
+            statusCmd.Parameters.Add("@id", SqlDbType.UniqueIdentifier).Value = pedidoId;
+            var status = (string?)await statusCmd.ExecuteScalarAsync();
+            if (status is null) throw new KeyNotFoundException("Pedido não encontrado.");
+            if (VendaFaturada(status))
+                throw new InvalidOperationException("Itens de pedidos faturados não podem ser alterados.");
+        }
+
         var usadas = Parametros(cmd, def.Cols, corpo);
         var nomes = usadas.Select(c => $"[{c.Nome}]").ToList();
         var valores = usadas.Select(c => "@" + c.Nome).ToList();
@@ -664,11 +730,32 @@ GROUP BY produtoRef;", con, tx);
         cmd.Transaction = tx;
 
         string? statusAnterior = null;
-        if (def.Tabela == "pedidos" && corpo.TryGetProperty("status", out _))
+        if (def.Tabela == "pedidos")
         {
-            await using var statusCmd = new SqlCommand("SELECT status FROM dbo.pedidos WHERE id = @id", con, tx);
+            await using var statusCmd = new SqlCommand("SELECT status FROM dbo.pedidos WITH (UPDLOCK, HOLDLOCK) WHERE id = @id", con, tx);
             statusCmd.Parameters.Add("@id", SqlDbType.UniqueIdentifier).Value = id;
             statusAnterior = (string?)await statusCmd.ExecuteScalarAsync();
+            if (statusAnterior is null) throw new KeyNotFoundException("Pedido não encontrado.");
+            if (VendaFaturada(statusAnterior) &&
+                corpo.EnumerateObject().Any(propriedade => !propriedade.NameEquals("status")))
+                throw new InvalidOperationException("Pedidos faturados não podem ser editados.");
+            if (VendaFaturada(statusAnterior) &&
+                corpo.TryGetProperty("status", out var novoStatusJson) &&
+                novoStatusJson.ToString().Equals("orçamento", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Um pedido faturado não pode voltar ao status de orçamento.");
+        }
+        else if (def.Tabela == "pedido_itens")
+        {
+            await using var statusCmd = new SqlCommand(@"
+SELECT p.status
+FROM dbo.pedido_itens i
+JOIN dbo.pedidos p WITH (UPDLOCK, HOLDLOCK) ON p.id = i.pedidoId
+WHERE i.id = @id;", con, tx);
+            statusCmd.Parameters.Add("@id", SqlDbType.UniqueIdentifier).Value = id;
+            var status = (string?)await statusCmd.ExecuteScalarAsync();
+            if (status is null) throw new KeyNotFoundException("Item do pedido não encontrado.");
+            if (VendaFaturada(status))
+                throw new InvalidOperationException("Itens de pedidos faturados não podem ser alterados.");
         }
 
         var usadas = Parametros(cmd, def.Cols, corpo);
@@ -702,10 +789,23 @@ GROUP BY produtoRef;", con, tx);
         await using var tx = (SqlTransaction)await con.BeginTransactionAsync();
         if (def.Tabela == "pedidos")
         {
-            await using var statusCmd = new SqlCommand("SELECT status FROM dbo.pedidos WHERE id = @id", con, tx);
+            await using var statusCmd = new SqlCommand("SELECT status FROM dbo.pedidos WITH (UPDLOCK, HOLDLOCK) WHERE id = @id", con, tx);
             statusCmd.Parameters.Add("@id", SqlDbType.UniqueIdentifier).Value = id;
             if (VendaFaturada((string?)await statusCmd.ExecuteScalarAsync() ?? ""))
                 await AjustarEstoqueVendaAsync(con, tx, id, baixar: false);
+        }
+        else if (def.Tabela == "pedido_itens")
+        {
+            await using var statusCmd = new SqlCommand(@"
+SELECT p.status
+FROM dbo.pedido_itens i
+JOIN dbo.pedidos p WITH (UPDLOCK, HOLDLOCK) ON p.id = i.pedidoId
+WHERE i.id = @id;", con, tx);
+            statusCmd.Parameters.Add("@id", SqlDbType.UniqueIdentifier).Value = id;
+            var status = (string?)await statusCmd.ExecuteScalarAsync();
+            if (status is null) throw new KeyNotFoundException("Item do pedido não encontrado.");
+            if (VendaFaturada(status))
+                throw new InvalidOperationException("Itens de pedidos faturados não podem ser alterados.");
         }
         await using var cmd = new SqlCommand($"DELETE FROM dbo.[{def.Tabela}] WHERE id = @id", con, tx);
         cmd.Parameters.Add("@id", SqlDbType.UniqueIdentifier).Value = id;

@@ -6,6 +6,7 @@ const today = () => {
   return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
 };
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2, 10));
+const sameId = (left, right) => String(left || "").toLowerCase() === String(right || "").toLowerCase();
 const total = (itens) => (itens || []).reduce((a, i) => a + (Number(i.qtd) || 0) * (Number(i.unitario) || 0), 0);
 const totalPedido = (pedido) => Math.max(0, total(pedido.itens) - (Number(pedido.descontoValor) || 0));
 const overdue = (date, status) => date && !["pago", "paga", "cancelado", "cancelada"].includes(status) && date < today();
@@ -13,6 +14,7 @@ const overdue = (date, status) => date && !["pago", "paga", "cancelado", "cancel
 let db = { clientes: [], veiculos: [], servicos: [], produtos: [], carcacas: [], estoque: [], producao: [], cargas: [], pedidos: [], financeiro: [], contas: [], boletos: [] };
 let page = "painel";
 let pedidoId = null;
+let editingPedidoId = null;
 let vendaRascunho = null;
 let etapaVenda = 1;
 let editing = null;
@@ -240,6 +242,7 @@ document.getElementById("nav").onclick = (e) => {
   if (!b) return;
   page = b.dataset.page;
   pedidoId = null;
+  editingPedidoId = null;
   vendaRascunho = null;
   query = "";
   confirmDelete = "";
@@ -337,6 +340,7 @@ function render() {
   });
   view.querySelectorAll("[data-open]").forEach((b) => b.onclick = () => {
     pedidoId = b.dataset.open;
+    editingPedidoId = null;
     vendaRascunho = null;
     confirmDelete = "";
     render();
@@ -443,12 +447,67 @@ const views = {
 };
 
 function iniciarPedido() {
+  editingPedidoId = null;
   vendaRascunho = {
     clienteId: "", veiculoId: "", data: today(), pagamento: "pix", vendedor: "", previsao: "",
     obs: "", box: "", agendamento: "", horario: "", status: "orçamento", descontoPercentual: 0, itens: []
   };
   etapaVenda = 1;
   pedidoId = null;
+  render();
+}
+
+function editarOrcamento(pedido) {
+  if (pedido.status !== "orçamento") {
+    alert("Somente orçamentos podem ser editados. Pedidos faturados são somente leitura.");
+    return;
+  }
+  const cliente = db.clientes.find((item) => sameId(item.id, pedido.clienteId));
+  if (!cliente) {
+    alert("O cliente deste orçamento não está mais cadastrado. Não é possível editá-lo.");
+    return;
+  }
+  const itens = pedido.itens.map((item) => {
+    const tipo = item.tipo === "servico" ? "servico" : "pneu";
+    const referencia = tipo === "servico" ? item.servicoRef : item.produtoRef;
+    const cadastro = tipo === "servico"
+      ? db.servicos.find((servico) => sameId(servico.id, referencia))
+      : db.produtos.find((produto) => sameId(produto.id, referencia));
+    return cadastro ? {
+      tipo,
+      referencia: cadastro.id,
+      produtoRef: tipo === "pneu" ? cadastro.id : "",
+      servicoRef: tipo === "servico" ? cadastro.id : "",
+      produtoId: tipo === "pneu" ? cadastro.produtoId || "" : cadastro.codigo || "",
+      descricao: cadastro.nome,
+      medida: tipo === "pneu" ? cadastro.medida || "" : "",
+      qtd: Number(item.qtd),
+      unitario: Number(cadastro.preco) || 0
+    } : null;
+  });
+  if (!itens.length || itens.some((item) => item === null)) {
+    alert("Não foi possível carregar todos os itens deste orçamento para edição. Confira se os produtos e serviços ainda estão cadastrados e ativos.");
+    return;
+  }
+  editingPedidoId = pedido.id;
+  vendaRascunho = {
+    clienteId: cliente.id,
+    clienteBusca: cliente.nome,
+    veiculoId: db.veiculos.find((veiculo) => sameId(veiculo.id, pedido.veiculoId))?.id || "",
+    data: pedido.data || today(),
+    pagamento: pedido.pagamento || "pix",
+    vendedor: pedido.vendedor || "",
+    previsao: pedido.previsao || "",
+    obs: pedido.obs || "",
+    box: pedido.box || "",
+    agendamento: pedido.agendamento || "",
+    horario: pedido.horario || "",
+    status: "orçamento",
+    descontoPercentual: Number(pedido.descontoPercentual) || 0,
+    descontoValor: Number(pedido.descontoValor) || 0,
+    itens
+  };
+  etapaVenda = 1;
   render();
 }
 
@@ -547,7 +606,7 @@ function clienteEtapaMarkup() {
     ? clientesCorrespondentes(termoBusca).slice(0, 8)
     : [];
   const veiculos = selecionado
-    ? db.veiculos.filter((veiculo) => veiculo.clienteId === selecionado.id && String(veiculo.status || "").toLowerCase() !== "inativo")
+    ? db.veiculos.filter((veiculo) => sameId(veiculo.clienteId, selecionado.id) && String(veiculo.status || "").toLowerCase() !== "inativo")
     : [];
   return `<section class="card venda-etapa-conteudo">
     <span class="meta">Etapa 1 de 4</span><h2>Dados do cliente e veículo</h2>
@@ -649,18 +708,21 @@ function pagamentoEtapaMarkup() {
   const subtotal = total(vendaRascunho.itens);
   const percentual = Number(vendaRascunho.descontoPercentual) || 0;
   const desconto = Math.round(subtotal * percentual) / 100;
+  vendaRascunho.descontoValor = desconto;
   return `<section class="card venda-etapa-conteudo">
     <span class="meta">Etapa 4 de 4</span><h2>Pagamento e conclusão</h2>
     <div class="venda-resumo">${vendaRascunho.itens.map((item) => `<div><span>${item.qtd} × ${escapeHtml(item.descricao)}${item.medida ? ` ${escapeHtml(item.medida)}` : ""}</span><strong>${money(item.qtd * item.unitario)}</strong></div>`).join("") || `<p class="hint">Nenhum item selecionado. Volte e adicione pneus ou serviços.</p>`}
       <div class="resumo-subtotal"><span>Subtotal pneus</span><strong>${money(subtotalPorTipo("pneu"))}</strong></div>
       <div><span>Subtotal serviços</span><strong>${money(subtotalPorTipo("servico"))}</strong></div>
       <div class="desconto-linha"><label>Desconto (%)<input id="descontoPercentual" type="number" min="0" max="100" step="0.01" value="${escapeHtml(percentual)}"></label>
-        <label>Valor do desconto<input id="descontoValor" type="text" readonly value="${money(desconto)}"></label></div>
+        <label>Valor do desconto (R$)<input id="descontoValor" type="number" min="0" max="${subtotal.toFixed(2)}" step="0.01" value="${desconto.toFixed(2)}"></label></div>
       <div class="venda-total"><span>Total final</span><strong id="totalFinal">${money(Math.max(0, subtotal - desconto))}</strong></div>
     </div>
     <div class="grid venda-pagamento">
       <label>Forma de pagamento<select id="pagamentoVenda">${["pix", "dinheiro", "cartão", "boleto", "a prazo"].map(v => `<option ${v === vendaRascunho.pagamento ? "selected" : ""}>${v}</option>`).join("")}</select></label>
-      <label>Status da venda<select id="statusVenda"><option value="orçamento" ${vendaRascunho.status === "orçamento" ? "selected" : ""}>Pedido (não baixa estoque)</option><option value="faturado" ${vendaRascunho.status === "faturado" ? "selected" : ""}>Faturar agora (baixa estoque)</option><option value="pago" ${vendaRascunho.status === "pago" ? "selected" : ""}>Pago e faturado (baixa estoque)</option></select></label>
+      ${editingPedidoId
+        ? `<div class="pedido-status-bloqueado"><span class="meta">Status</span><strong>Orçamento · sem baixa de estoque</strong></div>`
+        : `<label>Status da venda<select id="statusVenda"><option value="orçamento" ${vendaRascunho.status === "orçamento" ? "selected" : ""}>Pedido (não baixa estoque)</option><option value="faturado" ${vendaRascunho.status === "faturado" ? "selected" : ""}>Faturar agora (baixa estoque)</option><option value="pago" ${vendaRascunho.status === "pago" ? "selected" : ""}>Pago e faturado (baixa estoque)</option></select></label>`}
     </div>
     <h3 class="venda-agenda-titulo">Agendar na oficina (opcional)</h3>
     <div class="grid venda-pagamento">
@@ -668,13 +730,13 @@ function pagamentoEtapaMarkup() {
       <label>Data<input id="dataAgendaVenda" type="date" value="${escapeHtml(vendaRascunho.agendamento)}"></label>
       <label>Horário<input id="horarioVenda" type="time" value="${escapeHtml(vendaRascunho.horario)}"></label>
     </div>
-    <div class="venda-navegacao"><button class="btn ghost" type="button" data-anterior>← Anterior</button><button class="btn" type="button" id="concluirVenda" ${vendaRascunho.itens.length ? "" : "disabled"}>Concluir venda e baixar pedido em PDF</button></div>
+    <div class="venda-navegacao"><button class="btn ghost" type="button" data-anterior>← Anterior</button><button class="btn" type="button" id="concluirVenda" ${vendaRascunho.itens.length ? "" : "disabled"}>${editingPedidoId ? "Salvar alterações do orçamento e gerar PDF" : "Concluir venda e baixar pedido em PDF"}</button></div>
   </section>`;
 }
 
 function renderVenda() {
   const nomes = ["Cliente / Veículo", "Pneus", "Serviços", "Pagamento"];
-  document.getElementById("title").textContent = `Nova venda · Etapa ${etapaVenda} de 4`;
+  document.getElementById("title").textContent = `${editingPedidoId ? `Editar orçamento ${db.pedidos.find((pedido) => pedido.id === editingPedidoId)?.numero || ""}` : "Nova venda"} · Etapa ${etapaVenda} de 4`;
   document.getElementById("lede").textContent = "Sistema SFA / PDV — complete as etapas para concluir a venda.";
   document.getElementById("actions").innerHTML = `<button class="btn ghost" id="cancelarVenda" type="button">Cancelar venda</button>`;
   const conteudo = [clienteEtapaMarkup, produtosEtapaMarkup, servicosEtapaMarkup, pagamentoEtapaMarkup][etapaVenda - 1]();
@@ -684,6 +746,7 @@ function renderVenda() {
   document.getElementById("cancelarVenda").onclick = () => {
     if (!confirm("Descartar os dados desta venda?")) return;
     vendaRascunho = null;
+    editingPedidoId = null;
     render();
   };
   document.querySelectorAll("[data-anterior]").forEach((button) => button.onclick = () => { etapaVenda--; render(); });
@@ -744,12 +807,28 @@ function renderVenda() {
     alterarItem(tipo, id, qtd);
   });
   const desconto = document.getElementById("descontoPercentual");
+  const valorDesconto = document.getElementById("descontoValor");
+  const atualizarTotalComDesconto = (valor) => {
+    document.getElementById("totalFinal").textContent = money(Math.max(0, total(vendaRascunho.itens) - valor));
+  };
   if (desconto) desconto.oninput = () => {
     const percentual = Math.min(100, Math.max(0, Number(desconto.value) || 0));
     vendaRascunho.descontoPercentual = percentual;
-    const valorDesconto = total(vendaRascunho.itens) * percentual / 100;
-    document.getElementById("descontoValor").value = money(valorDesconto);
-    document.getElementById("totalFinal").textContent = money(Math.max(0, total(vendaRascunho.itens) - valorDesconto));
+    const valor = Math.round(total(vendaRascunho.itens) * percentual) / 100;
+    vendaRascunho.descontoValor = valor;
+    valorDesconto.value = valor.toFixed(2);
+    atualizarTotalComDesconto(valor);
+  };
+  if (valorDesconto) valorDesconto.oninput = () => {
+    const subtotalAtual = total(vendaRascunho.itens);
+    const valorInformado = Math.max(0, Number(valorDesconto.value) || 0);
+    const valor = Math.min(subtotalAtual, Math.round(valorInformado * 100) / 100);
+    const percentual = subtotalAtual ? Math.round(valor / subtotalAtual * 10000) / 100 : 0;
+    vendaRascunho.descontoValor = valor;
+    vendaRascunho.descontoPercentual = percentual;
+    desconto.value = percentual.toFixed(2);
+    valorDesconto.setCustomValidity(valorInformado > subtotalAtual ? "O desconto não pode ser maior que o subtotal." : "");
+    atualizarTotalComDesconto(valor);
   };
   const pagamento = document.getElementById("pagamentoVenda");
   if (pagamento) pagamento.onchange = () => { vendaRascunho.pagamento = pagamento.value; };
@@ -772,19 +851,23 @@ async function concluirVenda() {
   }
   const corpo = {
     ...vendaRascunho,
+    status: editingPedidoId ? "orçamento" : vendaRascunho.status,
     itens: vendaRascunho.itens.map((item) => ({
       tipo: item.tipo, produtoRef: item.produtoRef, servicoRef: item.servicoRef, qtd: item.qtd
     }))
   };
   let pedido;
   try {
-    pedido = await api("/api/vendas", { method: "POST", body: JSON.stringify(corpo) });
+    pedido = editingPedidoId
+      ? await api(`/api/vendas/${editingPedidoId}`, { method: "PUT", body: JSON.stringify(corpo) })
+      : await api("/api/vendas", { method: "POST", body: JSON.stringify(corpo) });
   } catch (error) {
-    alert(`Não foi possível salvar o pedido: ${error.message}`);
+    alert(`Não foi possível ${editingPedidoId ? "salvar as alterações do orçamento" : "salvar o pedido"}: ${error.message}`);
     return;
   }
 
   vendaRascunho = null;
+  editingPedidoId = null;
   pedidoId = pedido.id;
   etapaVenda = 1;
   try {
@@ -827,7 +910,7 @@ function renderPedido() {
     <div class="venda-detalhe-topo"><div><span class="meta">Pedido de venda</span><h2>${escapeHtml(pedido.numero)}</h2></div>${badge(pedido.status)}</div>
     <dl class="capa venda-detalhe">
       <div><dt>Cliente</dt><dd>${escapeHtml(pedido.cliente)}</dd></div>
-      <div><dt>Veículo</dt><dd>${escapeHtml(db.veiculos.find((v) => v.id === pedido.veiculoId)?.modelo || "—")}</dd></div>
+      <div><dt>Veículo</dt><dd>${escapeHtml(db.veiculos.find((v) => sameId(v.id, pedido.veiculoId))?.modelo || "—")}</dd></div>
       <div><dt>Data</dt><dd>${br(pedido.data)}</dd></div>
       <div><dt>Pagamento</dt><dd>${escapeHtml(pedido.pagamento)}</dd></div>
       <div><dt>Agendamento</dt><dd>${br(pedido.agendamento)} ${escapeHtml(pedido.horario)}</dd></div>
@@ -840,6 +923,7 @@ function renderPedido() {
     <div class="venda-total"><span>Desconto (${Number(pedido.descontoPercentual || 0).toLocaleString("pt-BR")}%)</span><strong>− ${money(pedido.descontoValor)}</strong></div>
     <div class="venda-total"><span>Total final</span><strong>${money(totalPedido(pedido))}</strong></div>
     <div class="venda-navegacao">
+      ${pedido.status === "orçamento" ? `<button class="btn ghost" id="editarOrcamento" type="button">Editar orçamento</button>` : ""}
       ${pedido.status === "orçamento" ? `<button class="btn" id="faturarPedido" type="button">Faturar e baixar estoque</button>` : ""}
       ${confirmDelete === `pedido:${pedido.id}`
         ? `<button class="btn danger" id="confirmarExclusaoPedido" type="button">Confirmar exclusão</button><button class="btn ghost" id="cancelarExclusaoPedido" type="button">Cancelar</button>`
@@ -850,6 +934,8 @@ function renderPedido() {
   document.getElementById("baixarPedidoPdf").onclick = async () => {
     try { await baixarPdf(pedido.id); } catch (error) { alert(`Não foi possível baixar o PDF: ${error.message}`); }
   };
+  const editar = document.getElementById("editarOrcamento");
+  if (editar) editar.onclick = () => editarOrcamento(pedido);
   const faturar = document.getElementById("faturarPedido");
   if (faturar) faturar.onclick = async () => {
     try {
